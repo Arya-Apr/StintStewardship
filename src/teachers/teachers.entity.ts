@@ -1,5 +1,4 @@
 /* eslint-disable prettier/prettier */
-import { Subject } from 'src/subject/subject.entity';
 import { Tasks } from 'src/tasks/tasks.entity';
 import {
   Column,
