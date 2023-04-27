@@ -1,0 +1,66 @@
+type Tasks {
+  tasks_id: ID!
+  task_name: String!
+  semester: Float!
+  subject_code: Float!
+  alloted_students: [String!]!
+  alloted_teachers: [String!]!
+}
+
+type Subject {
+  subject_id: ID!
+  sub_name: String!
+  sub_code: Float!
+  tasks: [String!]!
+}
+
+type Students {
+  stud_id: ID!
+  stud_name: String!
+  stud_roll: Float!
+  semester: Float!
+  username: String!
+  password: String!
+  tasks: [String!]!
+}
+
+type Teachers {
+  teacher_id: ID!
+  teacher_name: String!
+  teacher_subject: String!
+  assigned_tasks: [String!]!
+}
+
+type Query {
+  getTasks: [Tasks!]!
+  getSubjects: [Subject!]!
+  getSubjectById(subject_code: Float!): Subject!
+  getStudents: [Students!]!
+  getTeachers: [Teachers!]!
+}
+
+type Mutation {
+  createTask(createTasksType: CreateTasksType!): Tasks!
+  createSubject(createSubjectInput: CreateSubjectInput!): Subject!
+  createStudent(createStudentInput: CreateStudentInput!): Students!
+  createTeacher: Teachers!
+}
+
+input CreateTasksType {
+  task_name: String!
+  semester: Float!
+  subject_code: Float!
+}
+
+input CreateSubjectInput {
+  sub_name: String!
+  sub_code: Float!
+}
+
+input CreateStudentInput {
+  stud_name: String!
+  stud_roll: Float!
+  semester: Float!
+  username: String!
+  password: String!
+}
