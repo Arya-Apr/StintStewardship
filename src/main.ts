@@ -11,6 +11,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(new TransformInterceptor());
+  app.enableCors();
   await app.listen(3000);
   const { schema } = app.get(GraphQLSchemaHost);
   writeFileSync(join(process.cwd(), `/src/schema.gql`), printSchema(schema));

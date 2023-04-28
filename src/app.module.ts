@@ -4,12 +4,11 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TasksModule } from './tasks/tasks.module';
 import { StudentsModule } from './students/students.module';
-// import { TeachersModule } from './teachers/teachers.module';
+import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
 import { SubjectModule } from './subject/subject.module';
 import { Students } from './students/students.entity';
 import { ApolloDriver } from '@nestjs/apollo';
 import { Tasks } from './tasks/tasks.entity';
-// import { Teachers } from './teachers/teachers.entity';
 import { Subject } from './subject/subject.entity';
 import { Teachers } from './teachers/teachers.entity';
 import { TeachersModule } from './teachers/teachers.module';
@@ -28,6 +27,8 @@ import { TeachersModule } from './teachers/teachers.module';
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
+      playground: false,
+      plugins: [ApolloServerPluginLandingPageLocalDefault()],
       driver: ApolloDriver,
     }),
     TasksModule,
