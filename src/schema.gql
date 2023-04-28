@@ -43,7 +43,7 @@ type Mutation {
   createTask(createTasksType: CreateTasksType!): Tasks!
   createSubject(createSubjectInput: CreateSubjectInput!): Subject!
   createStudent(createStudentInput: CreateStudentInput!): Students!
-  createTeacher: Teachers!
+  createTeacher(createTeacherInput: CreateTeachersInput!): Teachers!
 }
 
 input CreateTasksType {
@@ -63,4 +63,9 @@ input CreateStudentInput {
   semester: Float!
   username: String!
   password: String!
+}
+
+input CreateTeachersInput {
+  teacher_name: String!
+  teacher_subject: String!
 }

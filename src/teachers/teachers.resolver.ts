@@ -1,4 +1,4 @@
-import { Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { TeachersService } from './teachers.service';
 import { TeachersType } from './teachers.type';
 import { Teachers } from './teachers.entity';
@@ -10,7 +10,7 @@ export class TeachersResolver {
 
   @Mutation(() => TeachersType)
   async createTeacher(
-    createTeacherInput: CreateTeachersInput,
+    @Args('createTeacherInput') createTeacherInput: CreateTeachersInput,
   ): Promise<Teachers> {
     return this.teachersService.createTeacher(createTeacherInput);
   }

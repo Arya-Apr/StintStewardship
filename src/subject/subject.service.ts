@@ -30,4 +30,8 @@ export class SubjectService {
   async getSubjectById(subject_code: number): Promise<Subject> {
     return await this.subjectRepository.findOneBy({ sub_code: subject_code });
   }
+
+  async getSubjectByName(sub_name: string): Promise<Subject> {
+    return await this.subjectRepository.findOneBy({ sub_name: sub_name });
+  }
 }

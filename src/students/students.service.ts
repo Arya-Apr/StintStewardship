@@ -26,30 +26,32 @@ export class StudentsService {
       semester,
     });
 
-    const mailTransporter = createTransport({
-      host: 'smtp.ethereal.email',
-      secure: false,
-      auth: {
-        user: 'leanna.schaefer41@ethereal.email',
-        pass: 'zmqjbBNrGpQzqjaCKX',
-      },
-    });
+    if (student) {
+      const mailTransporter = createTransport({
+        host: 'smtp.ethereal.email',
+        secure: false,
+        auth: {
+          user: 'leanna.schaefer41@ethereal.email',
+          pass: 'zmqjbBNrGpQzqjaCKX',
+        },
+      });
 
-    mailTransporter.sendMail(
-      {
-        from: 'leanna.schaefer41@ethereal.email',
-        to: 'leanna.schaefer41@ethereal.email',
-        subject: 'Demo',
-        text: `hello`,
-      },
-      (err) => {
-        if (err) {
-          console.log(err);
-        } else {
-          console.log('Email sent to user');
-        }
-      },
-    );
+      mailTransporter.sendMail(
+        {
+          from: 'leanna.schaefer41@ethereal.email',
+          to: 'leanna.schaefer41@ethereal.email',
+          subject: 'Demo',
+          text: `hello`,
+        },
+        (err) => {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log('Email sent to user');
+          }
+        },
+      );
+    }
 
     return await this.studentRepository.save(student);
   }
