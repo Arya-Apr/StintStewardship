@@ -24,6 +24,7 @@ export class StudentsService {
       username,
       password,
       semester,
+      role: 'student',
     });
 
     if (student) {
@@ -57,6 +58,13 @@ export class StudentsService {
   }
 
   async getStudents(): Promise<Students[]> {
-    return this.studentRepository.find();
+    return await this.studentRepository.find();
+  }
+
+  async getStudent(username: string): Promise<Students> {
+    const student = await this.studentRepository.findOne({
+      where: { username },
+    });
+    return student;
   }
 }

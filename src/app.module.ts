@@ -12,6 +12,7 @@ import { Tasks } from './tasks/tasks.entity';
 import { Subject } from './subject/subject.entity';
 import { Teachers } from './teachers/teachers.entity';
 import { TeachersModule } from './teachers/teachers.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -30,11 +31,13 @@ import { TeachersModule } from './teachers/teachers.module';
       playground: false,
       plugins: [ApolloServerPluginLandingPageLocalDefault()],
       driver: ApolloDriver,
+      context: ({ req }) => ({ headers: req.headers }),
     }),
     TasksModule,
     StudentsModule,
     TeachersModule,
     SubjectModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],

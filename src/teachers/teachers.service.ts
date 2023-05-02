@@ -18,7 +18,8 @@ export class TeachersService {
   async createTeacher(
     createTeacherInput: CreateTeachersInput,
   ): Promise<Teachers> {
-    const { teacher_name, teacher_subject } = createTeacherInput;
+    const { teacher_name, teacher_subject, username, password } =
+      createTeacherInput;
 
     const subject = await this.subjectService.getSubjectByName(teacher_subject);
     if (subject) {
@@ -26,6 +27,9 @@ export class TeachersService {
         teacher_id: uuid(),
         teacher_name,
         teacher_subject,
+        password,
+        username,
+        role: 'teacher',
       });
       if (teacher) {
         const mailTransporter = createTransport({
@@ -61,5 +65,15 @@ export class TeachersService {
 
   async getTeachers(): Promise<Teachers[]> {
     return await this.teachersRepository.find();
+  }
+
+  async getTeacher(username: string): Promise<Teachers> {
+    const teacher = await this.teachersRepository.findOne({
+      where: {
+        username,
+      },
+    });
+
+    return teacher;
   }
 }

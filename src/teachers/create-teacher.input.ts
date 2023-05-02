@@ -8,4 +8,10 @@ export class CreateTeachersInput {
 
   @Field()
   teacher_subject: string;
+
+  @Field()
+  username: string;
+
+  @Field()
+  password: string;
 }

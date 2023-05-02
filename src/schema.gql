@@ -31,6 +31,20 @@ type Teachers {
   assigned_tasks: [String!]!
 }
 
+type loginUserObject {
+  username: String!
+  password: String!
+  accessToken: String
+  role: String!
+}
+
+input UserLoginInput {
+  username: String!
+  password: String!
+  accessToken: String
+  role: String!
+}
+
 type Query {
   getTasks: [Tasks!]!
   getSubjects: [Subject!]!
@@ -44,6 +58,7 @@ type Mutation {
   createSubject(createSubjectInput: CreateSubjectInput!): Subject!
   createStudent(createStudentInput: CreateStudentInput!): Students!
   createTeacher(createTeacherInput: CreateTeachersInput!): Teachers!
+  studentLogin(loginUserInput: UserLoginInput!): loginUserObject!
 }
 
 input CreateTasksType {
@@ -68,4 +83,6 @@ input CreateStudentInput {
 input CreateTeachersInput {
   teacher_name: String!
   teacher_subject: String!
+  username: String!
+  password: String!
 }

@@ -34,4 +34,7 @@ export class Students {
   @ManyToMany(() => Tasks, (tasks) => tasks.task_name, { eager: true })
   @Column()
   tasks: Tasks[];
+
+  @Column()
+  role: 'student';
 }

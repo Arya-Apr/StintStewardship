@@ -8,5 +8,6 @@ import { SubjectModule } from 'src/subject/subject.module';
 @Module({
   imports: [TypeOrmModule.forFeature([Teachers]), SubjectModule],
   providers: [TeachersResolver, TeachersService],
+  exports: [TeachersService],
 })
 export class TeachersModule {}

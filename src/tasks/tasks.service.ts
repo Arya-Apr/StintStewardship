@@ -16,7 +16,7 @@ export class TasksService {
     const { task_name, semester, subject_code } = createTasksType;
     const subject = await this.subjectService.getSubjectById(subject_code);
     if (subject) {
-      const task = await this.tasksRepository.create({
+      const task = this.tasksRepository.create({
         tasks_id: uuid(),
         task_name,
         semester,

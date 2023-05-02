@@ -20,10 +20,19 @@ export class Teachers {
   @Column()
   teacher_name: string;
 
+  @Column({ unique: true })
+  username: string;
+
+  @Column()
+  password: string;
+
   @Column()
   teacher_subject: string;
 
   @ManyToMany(() => Tasks, (task) => task.task_name, { eager: true })
   @Column()
   assigned_tasks: Tasks[];
+
+  @Column()
+  role: 'teacher';
 }

@@ -1,5 +1,4 @@
 /* eslint-disable prettier/prettier */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Field, InputType } from '@nestjs/graphql';
 @InputType()
 export class CreateStudentInput {
