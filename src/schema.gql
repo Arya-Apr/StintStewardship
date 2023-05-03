@@ -29,7 +29,7 @@ type Teachers {
   teacher_id: ID!
   teacher_name: String!
   teacher_subject: String!
-  assigned_tasks: [String!]!
+  assigned_tasks: [String!]
 }
 
 type loginUserObject {

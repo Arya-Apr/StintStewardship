@@ -35,18 +35,19 @@ export class StudentsService {
     });
     if (student) {
       const mailTransporter = createTransport({
-        host: 'smtp.ethereal.email',
+        service: 'gmail',
+        host: 'smtp.gmail.com',
         secure: false,
         auth: {
-          user: 'leanna.schaefer41@ethereal.email',
-          pass: 'zmqjbBNrGpQzqjaCKX',
+          user: `${process.env.USER}`,
+          pass: `${process.env.PASS}`,
         },
       });
 
       mailTransporter.sendMail(
         {
-          from: 'leanna.schaefer41@ethereal.email',
-          to: 'leanna.schaefer41@ethereal.email',
+          from: `${process.env.USER}`,
+          to: 'aryarana49@gmail.com',
           subject: 'Demo',
           text: `hello`,
         },

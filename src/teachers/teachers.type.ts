@@ -12,6 +12,6 @@ export class TeachersType {
   @Field()
   teacher_subject: string;
 
-  @Field(() => [String])
-  assigned_tasks: string[];
+  @Field(() => [String], { nullable: true })
+  assigned_tasks?: string[];
 }

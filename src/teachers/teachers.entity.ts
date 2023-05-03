@@ -1,9 +1,7 @@
 /* eslint-disable prettier/prettier */
-import { Tasks } from 'src/tasks/tasks.entity';
 import {
   Column,
   Entity,
-  ManyToMany,
   ObjectIdColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -29,9 +27,9 @@ export class Teachers {
   @Column()
   teacher_subject: string;
 
-  @ManyToMany(() => Tasks, (task) => task.task_name, { eager: true })
-  @Column()
-  assigned_tasks: Tasks[];
+  // @ManyToMany(() => Tasks, (task) => task.task_name, { eager: true })
+  @Column({ nullable: true })
+  assigned_tasks?: string[];
 
   @Column()
   role: 'teacher';
