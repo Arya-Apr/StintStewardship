@@ -8,6 +8,7 @@ import {
   ManyToMany,
   ManyToOne,
   ObjectIdColumn,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -29,9 +30,9 @@ export class Tasks {
   @Column()
   subject_code: number;
 
-  @ManyToMany(() => Students, (student) => student.stud_name, { eager: false })
-  @Column()
-  alloted_students: Students[];
+  // @OneToMany(() => Students, (student) => student.stud_id, { eager: true })
+  @Column({ nullable: true })
+  alloted_students?: string[];
 
   @ManyToMany(() => Teachers, (teacher) => teacher.teacher_name, {
     eager: false,

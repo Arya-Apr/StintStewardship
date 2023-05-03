@@ -8,4 +8,7 @@ export class CreateSubjectInput {
 
   @Field()
   sub_code: number;
+
+  @Field()
+  sub_of_sem: number;
 }

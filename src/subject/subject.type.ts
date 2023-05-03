@@ -12,6 +12,9 @@ export class SubjectType {
   @Field()
   sub_code: number;
 
+  @Field()
+  sub_of_sem: number;
+
   @Field(() => [String])
   tasks: string[];
 }

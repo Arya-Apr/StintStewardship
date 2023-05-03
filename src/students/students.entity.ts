@@ -3,7 +3,6 @@ import { Tasks } from 'src/tasks/tasks.entity';
 import {
   Column,
   Entity,
-  ManyToMany,
   ObjectIdColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -31,9 +30,9 @@ export class Students {
   @Column()
   password: string;
 
-  @ManyToMany(() => Tasks, (tasks) => tasks.task_name, { eager: true })
+  // @ManyToOne(() => Tasks, (tasks) => tasks.task_name, { eager: true })
   @Column()
-  tasks: Tasks[];
+  tasks: string[];
 
   @Column()
   role: 'student';

@@ -17,6 +17,9 @@ export class Subject {
   subject_id: string;
 
   @Column()
+  sub_of_sem: number;
+
+  @Column()
   sub_name: string;
 
   @Column({ unique: true })

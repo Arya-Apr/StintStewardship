@@ -3,7 +3,7 @@ type Tasks {
   task_name: String!
   semester: Float!
   subject_code: Float!
-  alloted_students: [String!]!
+  alloted_students: [String!]
   alloted_teachers: [String!]!
 }
 
@@ -11,6 +11,7 @@ type Subject {
   subject_id: ID!
   sub_name: String!
   sub_code: Float!
+  sub_of_sem: Float!
   tasks: [String!]!
 }
 
@@ -70,6 +71,7 @@ input CreateTasksType {
 input CreateSubjectInput {
   sub_name: String!
   sub_code: Float!
+  sub_of_sem: Float!
 }
 
 input CreateStudentInput {
