@@ -105,6 +105,7 @@ export class TasksService {
       where: { tasks_id: id },
     });
     if (task_to_delete) {
+      await this.studentService.removeTaskFromStudent(task_to_delete.task_name);
       const result = await this.tasksRepository.delete(task_to_delete._id);
       return result.affected > 0;
     } else {

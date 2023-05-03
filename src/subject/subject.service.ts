@@ -35,4 +35,16 @@ export class SubjectService {
   async getSubjectByName(sub_name: string): Promise<Subject> {
     return await this.subjectRepository.findOneBy({ sub_name: sub_name });
   }
+
+  async deleteSubject(id: string) {
+    const subject_to_delete = await this.subjectRepository.findOne({
+      where: { subject_id: id },
+    });
+    if (subject_to_delete) {
+      const result = await this.subjectRepository.delete(subject_to_delete._id);
+      return result.affected > 0;
+    } else {
+      return false;
+    }
+  }
 }

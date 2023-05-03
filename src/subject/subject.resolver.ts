@@ -15,6 +15,7 @@ export class SubjectResolver {
   constructor(private subjectService: SubjectService) {}
 
   @Mutation(() => SubjectType)
+  @Roles(Role.Teacher)
   async createSubject(
     @Args('createSubjectInput') createSubjectInput: CreateSubjectInput,
   ): Promise<Subject> {
@@ -33,5 +34,11 @@ export class SubjectResolver {
     @Args('subject_code') subject_code: number,
   ): Promise<Subject> {
     return await this.subjectService.getSubjectById(subject_code);
+  }
+
+  @Mutation(() => Boolean)
+  @Roles(Role.Teacher)
+  async deleteSubject(id: string) {
+    return this.subjectService.deleteSubject(id);
   }
 }

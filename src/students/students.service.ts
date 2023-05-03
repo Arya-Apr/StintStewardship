@@ -106,4 +106,19 @@ export class StudentsService {
     const usernames = students.map((student) => student.username);
     return usernames;
   }
+
+  async removeTaskFromStudent(name: string) {
+    const students = await this.studentRepository.find({
+      where: { tasks: name },
+    });
+    for (const student of students) {
+      const index = student.tasks.indexOf(name);
+      if (index !== -1) {
+        student.tasks.splice(index, 1);
+        await this.studentRepository.update(student._id, {
+          tasks: student.tasks,
+        });
+      }
+    }
+  }
 }
