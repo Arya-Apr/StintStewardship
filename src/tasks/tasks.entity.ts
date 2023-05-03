@@ -1,5 +1,4 @@
 /* eslint-disable prettier/prettier */
-import { Students } from 'src/students/students.entity';
 import { Subject } from 'src/subject/subject.entity';
 import { Teachers } from 'src/teachers/teachers.entity';
 import {
@@ -8,7 +7,6 @@ import {
   ManyToMany,
   ManyToOne,
   ObjectIdColumn,
-  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 

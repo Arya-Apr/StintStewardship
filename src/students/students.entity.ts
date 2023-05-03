@@ -1,5 +1,4 @@
 /* eslint-disable prettier/prettier */
-import { Tasks } from 'src/tasks/tasks.entity';
 import {
   Column,
   Entity,
@@ -31,8 +30,8 @@ export class Students {
   password: string;
 
   // @ManyToOne(() => Tasks, (tasks) => tasks.task_name, { eager: true })
-  @Column()
-  tasks: string[];
+  @Column({ nullable: true })
+  tasks?: string[];
 
   @Column()
   role: 'student';

@@ -21,6 +21,6 @@ export class StudentsType {
   @Field()
   password: string;
 
-  @Field(() => [String])
-  tasks: string[];
+  @Field(() => [String], { nullable: true })
+  tasks?: string[];
 }

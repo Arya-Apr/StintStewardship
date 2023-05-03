@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Students } from './students.entity';
 import { Repository } from 'typeorm';
@@ -6,11 +6,14 @@ import { v4 as uuid } from 'uuid';
 import { createTransport } from 'nodemailer';
 import { CreateStudentInput } from './create-student.input.type';
 import { Tasks } from 'src/tasks/tasks.entity';
+import { TasksService } from 'src/tasks/tasks.service';
 
 @Injectable()
 export class StudentsService {
   constructor(
     @InjectRepository(Students) private studentRepository: Repository<Students>,
+    @Inject(forwardRef(() => TasksService))
+    private taskService: TasksService,
   ) {}
 
   async createStudent(
@@ -18,6 +21,8 @@ export class StudentsService {
   ): Promise<Students> {
     const { stud_name, stud_roll, username, password, semester } =
       createStudentInput;
+
+    const tasks_id = await this.taskService.getTasksBySem(semester);
     const student = await this.studentRepository.create({
       stud_id: uuid(),
       stud_name,
@@ -25,10 +30,9 @@ export class StudentsService {
       username,
       password,
       semester,
-      tasks: [''],
+      tasks: tasks_id,
       role: 'student',
     });
-
     if (student) {
       const mailTransporter = createTransport({
         host: 'smtp.ethereal.email',
@@ -55,7 +59,7 @@ export class StudentsService {
         },
       );
     }
-
+    await this.taskService.assignTasksToNewStudent(student);
     return await this.studentRepository.save(student);
   }
 

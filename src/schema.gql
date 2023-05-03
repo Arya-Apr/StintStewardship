@@ -22,7 +22,7 @@ type Students {
   semester: Float!
   username: String!
   password: String!
-  tasks: [String!]!
+  tasks: [String!]
 }
 
 type Teachers {
