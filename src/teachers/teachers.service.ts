@@ -45,9 +45,14 @@ export class TeachersService {
         mailTransporter.sendMail(
           {
             from: `${process.env.USER}`,
-            to: 'aryarana49@gmail.com',
-            subject: 'Demo',
-            text: `hello`,
+            to: `${teacher.username}`,
+            subject: 'New Teacher Created',
+            html: `<html>
+              <body>
+                <h1>New Teacher Created</h1>
+                <p>Greetings! ${teacher.teacher_name}</p>
+              </body>
+            </html>`,
           },
           (err) => {
             if (err) {

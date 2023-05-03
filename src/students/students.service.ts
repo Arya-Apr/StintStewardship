@@ -30,7 +30,7 @@ export class StudentsService {
       username,
       password,
       semester,
-      tasks: tasks_id,
+      tasks: tasks_id || [],
       role: 'student',
     });
     if (student) {
@@ -47,9 +47,14 @@ export class StudentsService {
       mailTransporter.sendMail(
         {
           from: `${process.env.USER}`,
-          to: 'aryarana49@gmail.com',
-          subject: 'Demo',
-          text: `hello`,
+          to: `${student.username}`,
+          subject: 'New Student Created',
+          html: `<html>
+            <body>
+              <h1>New Student Created</h1>
+              <p>Hello${student.stud_name}</p>
+            </body>
+          </html>`,
         },
         (err) => {
           if (err) {
@@ -94,5 +99,11 @@ export class StudentsService {
       );
       await this.studentRepository.save(students);
     }
+  }
+
+  async getStudentUsernamesBySem(semester: number): Promise<any[]> {
+    const students = await this.studentRepository.find({ where: { semester } });
+    const usernames = students.map((student) => student.username);
+    return usernames;
   }
 }

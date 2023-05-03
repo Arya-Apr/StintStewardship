@@ -31,4 +31,10 @@ export class TasksResolver {
   async getTasks(): Promise<Tasks[]> {
     return await this.tasksService.getTasks();
   }
+
+  @Roles(Role.Teacher)
+  @Mutation(() => Boolean)
+  async deleteTask(@Args('id') id: string) {
+    return this.tasksService.deleteTask(id);
+  }
 }

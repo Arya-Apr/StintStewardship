@@ -56,6 +56,7 @@ type Query {
 
 type Mutation {
   createTask(createTasksType: CreateTasksType!): Tasks!
+  deleteTask(id: String!): Boolean!
   createSubject(createSubjectInput: CreateSubjectInput!): Subject!
   createStudent(createStudentInput: CreateStudentInput!): Students!
   createTeacher(createTeacherInput: CreateTeachersInput!): Teachers!
