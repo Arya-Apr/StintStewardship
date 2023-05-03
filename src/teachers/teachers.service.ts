@@ -77,4 +77,11 @@ export class TeachersService {
 
     return teacher;
   }
+
+  async getTeacherBySub(subject: string) {
+    const teacher = await this.teachersRepository.findOne({
+      where: { teacher_subject: subject },
+    });
+    return teacher;
+  }
 }

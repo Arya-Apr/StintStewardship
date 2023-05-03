@@ -6,11 +6,13 @@ import { TasksResolver } from './tasks.resolver';
 import { TasksService } from './tasks.service';
 import { SubjectModule } from 'src/subject/subject.module';
 import { StudentsModule } from 'src/students/students.module';
+import { TeachersModule } from 'src/teachers/teachers.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Tasks]),
     SubjectModule,
+    TeachersModule,
     forwardRef(() => StudentsModule),
   ],
   providers: [TasksResolver, TasksService],
