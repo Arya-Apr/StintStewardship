@@ -7,6 +7,7 @@ import { createTransport } from 'nodemailer';
 import { CreateStudentInput } from './create-student.input.type';
 import { Tasks } from 'src/tasks/tasks.entity';
 import { TasksService } from 'src/tasks/tasks.service';
+import { CommentTaskInput } from './comment-task-input';
 
 @Injectable()
 export class StudentsService {
@@ -31,6 +32,7 @@ export class StudentsService {
       password,
       semester,
       tasks: tasks_id || [],
+      comment: [],
       role: 'student',
     });
     if (student) {
@@ -120,5 +122,67 @@ export class StudentsService {
         });
       }
     }
+  }
+
+  async searchStudentByName(stud_name: string): Promise<Students> {
+    return await this.studentRepository.findOne({ where: { stud_name } });
+  }
+
+  async checkStudentByTaskName(stud_name: string, tasks_name: string) {
+    const student = await this.searchStudentByName(stud_name);
+    const res = student.tasks.includes(tasks_name);
+    return res;
+  }
+
+  async commentOnTask(commentInput: CommentTaskInput) {
+    const { stud_name, task_name, comment } = commentInput;
+    const task = await this.taskService.searchTaskByName(task_name);
+    const student = await this.searchStudentByName(stud_name);
+    if (student) {
+      const res = await this.checkStudentByTaskName(
+        student.stud_name,
+        task.task_name,
+      );
+      if (res) {
+        student.comment = [...student.comment, comment];
+        await this.studentRepository.save(student);
+        const mailTransporter = createTransport({
+          service: 'gmail',
+          host: 'smtp.gmail.com',
+          secure: false,
+          auth: {
+            user: `${process.env.USER}`,
+            pass: `${process.env.PASS}`,
+          },
+        });
+        mailTransporter.sendMail(
+          {
+            from: `${process.env.USER}`,
+            to: student.username,
+            subject: `Your Teacher Just Commented On Your Task ${task.task_name}`,
+            html: `<html>
+                  <body>
+                    <h1>Comment</h1>
+                    <p>${comment}</p>
+                  </body>
+            </html>`,
+          },
+          (err) => {
+            if (err) {
+              console.log(err);
+            } else {
+              console.log('Email sent to user');
+            }
+          },
+        );
+        return res;
+      }
+      throw new Error('No such Task Found');
+    }
+    throw new Error('Student Not Found');
+  }
+
+  async viewTasksOfOtherStudents() {
+    const students = await this.studentRepository.find();
   }
 }

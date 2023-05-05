@@ -39,7 +39,6 @@ export class TasksService {
           alloted_students: student_ids || [],
         });
         await this.studentService.assignStudentsWithTask(task);
-        //email to be sent to all students here
         const mailTransporter = createTransport({
           service: 'gmail',
           host: 'smtp.gmail.com',
@@ -111,5 +110,9 @@ export class TasksService {
     } else {
       return false;
     }
+  }
+
+  async searchTaskByName(task_name: string): Promise<Tasks> {
+    return await this.tasksRepository.findOne({ where: { task_name } });
   }
 }

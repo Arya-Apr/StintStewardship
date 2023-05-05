@@ -23,4 +23,7 @@ export class StudentsType {
 
   @Field(() => [String], { nullable: true })
   tasks?: string[];
+
+  @Field(() => [String], { nullable: true })
+  comment?: string[];
 }

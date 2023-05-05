@@ -33,6 +33,9 @@ export class Students {
   @Column({ nullable: true })
   tasks?: string[];
 
+  @Column({ nullable: true })
+  comment?: string[];
+
   @Column()
   role: 'student';
 }

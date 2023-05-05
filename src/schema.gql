@@ -23,6 +23,7 @@ type Students {
   username: String!
   password: String!
   tasks: [String!]
+  comment: [String!]
 }
 
 type Teachers {
@@ -60,7 +61,9 @@ type Mutation {
   createSubject(createSubjectInput: CreateSubjectInput!): Subject!
   deleteSubject: Boolean!
   createStudent(createStudentInput: CreateStudentInput!): Students!
+  commentOntudentTask(commentOnStudentTask: CommentTaskInput!): Boolean!
   createTeacher(createTeacherInput: CreateTeachersInput!): Teachers!
+  broadcastBasedOnSem(EnterMessageAndSem: BroadcastInput!): String!
   studentLogin(loginUserInput: UserLoginInput!): loginUserObject!
 }
 
@@ -84,9 +87,21 @@ input CreateStudentInput {
   password: String!
 }
 
+input CommentTaskInput {
+  task_name: String!
+  stud_name: String!
+  comment: String!
+}
+
 input CreateTeachersInput {
   teacher_name: String!
   teacher_subject: String!
   username: String!
   password: String!
+}
+
+input BroadcastInput {
+  message: String!
+  semester: Float!
+  name_of_teacher: String!
 }
