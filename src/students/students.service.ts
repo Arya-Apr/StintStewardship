@@ -63,7 +63,7 @@ export class StudentsService {
           if (err) {
             console.log(err);
           } else {
-            console.log('Email sent to user');
+            console.log('Mail Sent To New Registered Student');
           }
         },
       );
@@ -172,7 +172,7 @@ export class StudentsService {
             if (err) {
               console.log(err);
             } else {
-              console.log('Email sent to user');
+              console.log('Mail Sent To Student For The Comment');
             }
           },
         );

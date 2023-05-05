@@ -1,10 +1,8 @@
 /* eslint-disable prettier/prettier */
 import { Subject } from 'src/subject/subject.entity';
-import { Teachers } from 'src/teachers/teachers.entity';
 import {
   Column,
   Entity,
-  ManyToMany,
   ManyToOne,
   ObjectIdColumn,
   PrimaryGeneratedColumn,
@@ -32,9 +30,9 @@ export class Tasks {
   @Column({ nullable: true })
   alloted_students?: string[];
 
-  @ManyToMany(() => Teachers, (teacher) => teacher.teacher_name, {
-    eager: false,
-  })
+  // @ManyToMany(() => Teachers, (teacher) => teacher.teacher_name, {
+  //   eager: false,
+  // })
   @Column()
-  teachers: Teachers[];
+  teacher: string;
 }

@@ -41,6 +41,7 @@ export class TasksService {
           semester,
           subject_code: subject.sub_code,
           alloted_students: student_ids || [],
+          teacher: teacher.teacher_name,
         });
         await this.studentService.assignStudentsWithTask(task);
         const mailTransporter = createTransport({
@@ -57,7 +58,6 @@ export class TasksService {
             from: `${process.env.USER}`,
             to: Array.isArray(usernames) ? usernames.join(',') : usernames,
             subject: `New Task Assigned for Subject ${subject.sub_name}`,
-            text: `hello`,
             html: `<html>
                   <body>
                     <h1>New Tasks for ${subject.sub_code}</h1>
@@ -69,7 +69,27 @@ export class TasksService {
             if (err) {
               console.log(err);
             } else {
-              console.log('Email sent to user');
+              console.log('Mails Sent To Students For New Task Created');
+            }
+          },
+        );
+        mailTransporter.sendMail(
+          {
+            from: `${process.env.USER}`,
+            to: `${teacher.username}`,
+            subject: `Created This Task Successfully`,
+            html: `<html>
+                  <body>
+                    <h1>Created New Task For Students of Sem ${task.semester}</h1>
+                    <p>The Email was sent to all the Students, the students are ${task.alloted_students}</p>
+                  </body>
+            </html>`,
+          },
+          (err) => {
+            if (err) {
+              console.log(err);
+            } else {
+              console.log('Email Sent To Teacher For Creating New Task');
             }
           },
         );
@@ -145,7 +165,7 @@ export class TasksService {
       await this.studentService.assignStudentsWithCustomTask(user);
       return await this.personalTasksRepository.save(user);
     } else {
-      throw new Error('User Not Found, Please Register as One');
+      throw new Error('User Not Found, Please Register As One');
     }
   }
 }

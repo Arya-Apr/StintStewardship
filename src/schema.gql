@@ -4,7 +4,7 @@ type Tasks {
   semester: Float!
   subject_code: Float!
   alloted_students: [String!]
-  alloted_teachers: [String!]!
+  teacher: String!
 }
 
 type PersonalTasks {

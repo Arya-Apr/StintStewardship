@@ -64,7 +64,7 @@ export class TeachersService {
             if (err) {
               console.log(err);
             } else {
-              console.log('Email sent to user');
+              console.log('Email Sent To New Teacher');
             }
           },
         );
@@ -120,7 +120,7 @@ export class TeachersService {
           {
             from: `${process.env.USER}`,
             to: Array.isArray(usernames) ? usernames.join(',') : usernames,
-            subject: `This is a BroadCast Message For all Students of Sem ${semester}`,
+            subject: `This is a Broadcast Message For all Students of Sem ${semester}`,
             html: `<html>
           <body>
             <h1>Message</h1>
@@ -132,7 +132,7 @@ export class TeachersService {
             if (err) {
               console.log(err);
             } else {
-              console.log('Email sent to user');
+              console.log('The Broadcast Was Sent To All Students');
             }
           },
         );

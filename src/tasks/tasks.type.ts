@@ -18,6 +18,6 @@ export class TasksType {
   @Field(() => [String], { nullable: true })
   alloted_students?: string[];
 
-  @Field(() => [String])
-  alloted_teachers: string[];
+  @Field(() => String)
+  teacher: string;
 }
