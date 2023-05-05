@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
 import { StudentsType } from './students.type';
 import { StudentsService } from './students.service';
