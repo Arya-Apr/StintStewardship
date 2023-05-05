@@ -25,7 +25,7 @@ export class StudentsService {
       createStudentInput;
 
     const tasks_id = await this.taskService.getTasksBySem(semester);
-    const student = await this.studentRepository.create({
+    const student = this.studentRepository.create({
       stud_id: uuid(),
       stud_name,
       stud_roll,

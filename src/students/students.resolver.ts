@@ -29,7 +29,7 @@ export class StudentsResolver {
   @Mutation(() => Boolean)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Teacher)
-  async commentOntudentTask(
+  async commentOnStudentTask(
     @Args('commentOnStudentTask') commentStudentTask: CommentTaskInput,
   ) {
     return this.studentsService.commentOnTask(commentStudentTask);
