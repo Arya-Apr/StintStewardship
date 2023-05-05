@@ -8,6 +8,7 @@ import { CreateStudentInput } from './create-student.input.type';
 import { Tasks } from 'src/tasks/tasks.entity';
 import { TasksService } from 'src/tasks/tasks.service';
 import { CommentTaskInput } from './comment-task-input';
+import { PersonalTasks } from 'src/tasks/perosonal.tasks.entity';
 
 @Injectable()
 export class StudentsService {
@@ -182,7 +183,9 @@ export class StudentsService {
     throw new Error('Student Not Found');
   }
 
-  async viewTasksOfOtherStudents() {
-    const students = await this.studentRepository.find();
+  async assignStudentsWithCustomTask(task: PersonalTasks) {
+    const student = await this.getStudent(task.username);
+    student.tasks = [...student.tasks, task.task_name];
+    await this.studentRepository.save(student);
   }
 }

@@ -9,9 +9,13 @@ import { StudentsService } from 'src/students/students.service';
 import { Students } from 'src/students/students.entity';
 import { TeachersService } from 'src/teachers/teachers.service';
 import { createTransport } from 'nodemailer';
+import { CreateCustomTasksType } from './task-custom.input.type';
+import { PersonalTasks } from './perosonal.tasks.entity';
 @Injectable()
 export class TasksService {
   constructor(
+    @InjectRepository(PersonalTasks)
+    private personalTasksRepository: Repository<PersonalTasks>,
     @InjectRepository(Tasks) private tasksRepository: Repository<Tasks>,
     private subjectService: SubjectService,
     @Inject(forwardRef(() => StudentsService))
@@ -114,5 +118,34 @@ export class TasksService {
 
   async searchTaskByName(task_name: string): Promise<Tasks> {
     return await this.tasksRepository.findOne({ where: { task_name } });
+  }
+
+  async createTaskForPersonal(createCustomTasksInput: CreateCustomTasksType) {
+    const { task_name, content, username } = createCustomTasksInput;
+    const teacher = await this.teacherService.getTeacher(username);
+    const student = await this.studentService.getStudent(username);
+    if (teacher) {
+      const user = this.personalTasksRepository.create({
+        tasks_id: uuid(),
+        task_name,
+        content,
+        username,
+        alloted_user: teacher.teacher_id,
+      });
+      await this.teacherService.assignTeachersWithCustomTask(user);
+      return await this.personalTasksRepository.save(user);
+    } else if (student) {
+      const user = this.personalTasksRepository.create({
+        tasks_id: uuid(),
+        content,
+        task_name,
+        username,
+        alloted_user: student.stud_id,
+      });
+      await this.studentService.assignStudentsWithCustomTask(user);
+      return await this.personalTasksRepository.save(user);
+    } else {
+      throw new Error('User Not Found, Please Register as One');
+    }
   }
 }

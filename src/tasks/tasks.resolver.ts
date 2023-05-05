@@ -9,6 +9,8 @@ import { RolesGuard } from 'src/auth/role.guard';
 import { UseGuards } from '@nestjs/common';
 import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/role.enum';
+import { CreateCustomTasksType } from './task-custom.input.type';
+import { PersonalTasksType } from './task.input.custom';
 
 @Resolver(() => TasksType)
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -36,5 +38,12 @@ export class TasksResolver {
   @Mutation(() => Boolean)
   async deleteTask(@Args('id') id: string) {
     return this.tasksService.deleteTask(id);
+  }
+
+  @Mutation(() => PersonalTasksType)
+  async createTaskForPersonal(
+    @Args('createForPersonalUse') createCustomTasksInput: CreateCustomTasksType,
+  ) {
+    return this.tasksService.createTaskForPersonal(createCustomTasksInput);
   }
 }

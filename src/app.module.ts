@@ -13,7 +13,7 @@ import { Subject } from './subject/subject.entity';
 import { Teachers } from './teachers/teachers.entity';
 import { TeachersModule } from './teachers/teachers.module';
 import { AuthModule } from './auth/auth.module';
-
+import { PersonalTasks } from './tasks/perosonal.tasks.entity';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -24,7 +24,7 @@ import { AuthModule } from './auth/auth.module';
       useNewUrlParser: true,
       useUnifiedTopology: true,
       autoLoadEntities: true,
-      entities: [Students, Tasks, Teachers, Subject],
+      entities: [Students, Tasks, Teachers, Subject, PersonalTasks],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,

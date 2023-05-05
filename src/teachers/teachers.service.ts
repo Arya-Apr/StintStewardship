@@ -8,6 +8,7 @@ import { createTransport } from 'nodemailer';
 import { SubjectService } from 'src/subject/subject.service';
 import { BroadcastInput } from './broadcast-student.input';
 import { StudentsService } from 'src/students/students.service';
+import { PersonalTasks } from 'src/tasks/perosonal.tasks.entity';
 
 @Injectable()
 export class TeachersService {
@@ -33,6 +34,7 @@ export class TeachersService {
         teacher_subject,
         password,
         username,
+        assigned_tasks: [],
         role: 'teacher',
       });
       if (teacher) {
@@ -139,5 +141,11 @@ export class TeachersService {
       throw new Error(`No Students of sem ${semester} yet`);
     }
     throw new Error('Teacher Not Found');
+  }
+
+  async assignTeachersWithCustomTask(task: PersonalTasks) {
+    const teacher = await this.getTeacher(task.username);
+    teacher.assigned_tasks = [...teacher.assigned_tasks, task.task_name];
+    await this.teachersRepository.save(teacher);
   }
 }

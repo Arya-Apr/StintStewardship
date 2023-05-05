@@ -7,6 +7,14 @@ type Tasks {
   alloted_teachers: [String!]!
 }
 
+type PersonalTasks {
+  tasks_id: ID!
+  task_name: String!
+  username: String!
+  content: [String!]
+  alloted_user: String
+}
+
 type Subject {
   subject_id: ID!
   sub_name: String!
@@ -58,6 +66,7 @@ type Query {
 type Mutation {
   createTask(createTasksType: CreateTasksType!): Tasks!
   deleteTask(id: String!): Boolean!
+  createTaskForPersonal(createForPersonalUse: CreateCustomTasksType!): PersonalTasks!
   createSubject(createSubjectInput: CreateSubjectInput!): Subject!
   deleteSubject: Boolean!
   createStudent(createStudentInput: CreateStudentInput!): Students!
@@ -71,6 +80,12 @@ input CreateTasksType {
   task_name: String!
   semester: Float!
   subject_code: Float!
+}
+
+input CreateCustomTasksType {
+  task_name: String!
+  username: String!
+  content: [String!]
 }
 
 input CreateSubjectInput {
