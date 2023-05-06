@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Teachers } from './teachers.entity';
@@ -26,53 +27,48 @@ export class TeachersService {
     const { teacher_name, teacher_subject, username, password } =
       createTeacherInput;
 
-    const subject = await this.subjectService.getSubjectByName(teacher_subject);
-    if (subject) {
-      const teacher = this.teachersRepository.create({
-        teacher_id: uuid(),
-        teacher_name,
-        teacher_subject,
-        password,
-        username,
-        assigned_tasks: [],
-        role: 'teacher',
+    const teacher = this.teachersRepository.create({
+      teacher_id: uuid(),
+      teacher_name,
+      teacher_subject,
+      password,
+      username,
+      assigned_tasks: [],
+      role: 'teacher',
+    });
+    if (teacher) {
+      const mailTransporter = createTransport({
+        service: 'gmail',
+        host: 'smtp.gmail.com',
+        secure: false,
+        auth: {
+          user: `${process.env.USER}`,
+          pass: `${process.env.PASS}`,
+        },
       });
-      if (teacher) {
-        const mailTransporter = createTransport({
-          service: 'gmail',
-          host: 'smtp.gmail.com',
-          secure: false,
-          auth: {
-            user: `${process.env.USER}`,
-            pass: `${process.env.PASS}`,
-          },
-        });
 
-        mailTransporter.sendMail(
-          {
-            from: `${process.env.USER}`,
-            to: `${teacher.username}`,
-            subject: 'New Teacher Created',
-            html: `<html>
+      mailTransporter.sendMail(
+        {
+          from: `${process.env.USER}`,
+          to: `${teacher.username}`,
+          subject: 'New Teacher Created',
+          html: `<html>
               <body>
                 <h1>New Teacher Created</h1>
                 <p>Greetings! ${teacher.teacher_name}</p>
               </body>
             </html>`,
-          },
-          (err) => {
-            if (err) {
-              console.log(err);
-            } else {
-              console.log('Email Sent To New Teacher');
-            }
-          },
-        );
-      }
-      return this.teachersRepository.save(teacher);
-    } else {
-      throw new Error('Subject Not Found');
+        },
+        (err) => {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log('Email Sent To New Teacher');
+          }
+        },
+      );
     }
+    return this.teachersRepository.save(teacher);
   }
 
   async getTeachers(): Promise<Teachers[]> {

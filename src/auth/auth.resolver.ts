@@ -7,7 +7,7 @@ export class AuthResolver {
   constructor(private authService: AuthService) {}
 
   @Mutation(() => UserLoginInput)
-  async studentLogin(
+  async userLogin(
     @Args('loginUserInput') userLoginInput: UserLoginInput,
   ): Promise<{ accessToken: string }> {
     return this.authService.login(userLoginInput);

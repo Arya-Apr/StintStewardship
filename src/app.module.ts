@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { ConfigModule } from '@nestjs/config';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
@@ -14,6 +15,8 @@ import { Teachers } from './teachers/teachers.entity';
 import { TeachersModule } from './teachers/teachers.module';
 import { AuthModule } from './auth/auth.module';
 import { PersonalTasks } from './tasks/perosonal.tasks.entity';
+import { ScheduleModule } from '@nestjs/schedule';
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -33,6 +36,7 @@ import { PersonalTasks } from './tasks/perosonal.tasks.entity';
       driver: ApolloDriver,
       context: ({ req }) => ({ headers: req.headers }),
     }),
+    ScheduleModule.forRoot(),
     TasksModule,
     StudentsModule,
     TeachersModule,

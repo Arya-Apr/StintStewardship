@@ -38,7 +38,7 @@ export class SubjectResolver {
 
   @Mutation(() => Boolean)
   @Roles(Role.Teacher)
-  async deleteSubject(id: string) {
+  async deleteSubject(@Args('id') id: string) {
     return this.subjectService.deleteSubject(id);
   }
 }

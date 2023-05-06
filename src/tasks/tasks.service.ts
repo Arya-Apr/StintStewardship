@@ -1,7 +1,8 @@
+/* eslint-disable prettier/prettier */
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Tasks } from './tasks.entity';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { CreateTasksType } from './create-tasks.input';
 import { v4 as uuid } from 'uuid';
 import { SubjectService } from 'src/subject/subject.service';
@@ -24,7 +25,7 @@ export class TasksService {
   ) {}
 
   async createTask(createTasksType: CreateTasksType): Promise<Tasks> {
-    const { task_name, semester, subject_code } = createTasksType;
+    const { task_name, semester, subject_code, deadline } = createTasksType;
     const subject = await this.subjectService.getSubjectById(subject_code);
     const student_ids = await this.studentService.getStudentsIdsBySem(semester);
     const usernames = await this.studentService.getStudentUsernamesBySem(
@@ -42,6 +43,7 @@ export class TasksService {
           subject_code: subject.sub_code,
           alloted_students: student_ids || [],
           teacher: teacher.teacher_name,
+          deadline: deadline || new Date(),
         });
         await this.studentService.assignStudentsWithTask(task);
         const mailTransporter = createTransport({
@@ -127,9 +129,18 @@ export class TasksService {
     const task_to_delete = await this.tasksRepository.findOne({
       where: { tasks_id: id },
     });
+    const per_task_to_del = await this.personalTasksRepository.findOne({
+      where: { tasks_id: id },
+    });
     if (task_to_delete) {
       await this.studentService.removeTaskFromStudent(task_to_delete.task_name);
       const result = await this.tasksRepository.delete(task_to_delete._id);
+      return result.affected > 0;
+    } else if (per_task_to_del) {
+      await this.studentService.removeTaskFromStudent(
+        per_task_to_del.task_name,
+      );
+      const result = await this.tasksRepository.delete(per_task_to_del._id);
       return result.affected > 0;
     } else {
       return false;
@@ -141,7 +152,8 @@ export class TasksService {
   }
 
   async createTaskForPersonal(createCustomTasksInput: CreateCustomTasksType) {
-    const { task_name, content, username } = createCustomTasksInput;
+    const { task_name, content, username, semester, deadline } =
+      createCustomTasksInput;
     const teacher = await this.teacherService.getTeacher(username);
     const student = await this.studentService.getStudent(username);
     if (teacher) {
@@ -150,6 +162,8 @@ export class TasksService {
         task_name,
         content,
         username,
+        semester: semester || 1,
+        deadline: deadline || new Date(),
         alloted_user: teacher.teacher_id,
       });
       await this.teacherService.assignTeachersWithCustomTask(user);
@@ -160,6 +174,8 @@ export class TasksService {
         content,
         task_name,
         username,
+        semester: semester || 1,
+        deadline: deadline || new Date(),
         alloted_user: student.stud_id,
       });
       await this.studentService.assignStudentsWithCustomTask(user);
@@ -167,5 +183,60 @@ export class TasksService {
     } else {
       throw new Error('User Not Found, Please Register As One');
     }
+  }
+
+  async getSemFromTasks() {
+    const tasks = await this.tasksRepository.find();
+    const semesters = tasks.map((task) => task.semester);
+    return semesters;
+  }
+
+  async checkDeadlines() {
+    const now = new Date();
+    const approachingDeadlines = await this.tasksRepository.find({
+      where: {
+        deadline: Between(now, new Date(now.getTime() + 24 * 60 * 60 * 1000)),
+      },
+    });
+
+    if (approachingDeadlines.length === 0) {
+      console.log('no deadlines yet');
+    }
+    const semesters = await this.getSemFromTasks();
+    const usernames = semesters.map((semester) =>
+      this.studentService.getStudentUsernamesBySem(semester),
+    );
+    approachingDeadlines.forEach((task) => {
+      const mailTransporter = createTransport({
+        service: 'gmail',
+        host: 'smtp.gmail.com',
+        secure: false,
+        auth: {
+          user: `${process.env.USER}`,
+          pass: `${process.env.PASS}`,
+        },
+      });
+      mailTransporter.sendMail(
+        {
+          from: `${process.env.USER}`,
+          to: Array.isArray(usernames) ? usernames.join(',') : usernames,
+          subject: `Deadline Approaching for Task ${task.task_name}`,
+          html: `<html>
+                <body>
+                  <h1>Make Sure To Complete This Tasks</h1>
+                  <p>Complete It Quickly</p>
+                </body>
+          </html>`,
+        },
+        (err) => {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log('Mails Sent To Students For Deadline');
+            return true;
+          }
+        },
+      );
+    });
   }
 }

@@ -11,4 +11,10 @@ export class CreateCustomTasksType {
 
   @Field(() => [String], { nullable: true })
   content?: string[];
+
+  @Field({ nullable: true })
+  semester?: number;
+
+  @Field(() => Date, { nullable: true })
+  deadline?: Date;
 }

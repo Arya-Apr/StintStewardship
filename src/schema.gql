@@ -5,7 +5,13 @@ type Tasks {
   subject_code: Float!
   alloted_students: [String!]
   teacher: String!
+  deadline: DateTime
 }
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
 
 type PersonalTasks {
   tasks_id: ID!
@@ -13,6 +19,8 @@ type PersonalTasks {
   username: String!
   content: [String!]
   alloted_user: String
+  semester: Float
+  deadline: DateTime
 }
 
 type Subject {
@@ -20,7 +28,6 @@ type Subject {
   sub_name: String!
   sub_code: Float!
   sub_of_sem: Float!
-  tasks: [String!]!
 }
 
 type Students {
@@ -57,6 +64,7 @@ input UserLoginInput {
 
 type Query {
   getTasks: [Tasks!]!
+  checkDeadlines: [Tasks!]!
   getSubjects: [Subject!]!
   getSubjectById(subject_code: Float!): Subject!
   getStudents: [Students!]!
@@ -68,24 +76,27 @@ type Mutation {
   deleteTask(id: String!): Boolean!
   createTaskForPersonal(createForPersonalUse: CreateCustomTasksType!): PersonalTasks!
   createSubject(createSubjectInput: CreateSubjectInput!): Subject!
-  deleteSubject: Boolean!
+  deleteSubject(id: String!): Boolean!
   createStudent(createStudentInput: CreateStudentInput!): Students!
-  commentOntudentTask(commentOnStudentTask: CommentTaskInput!): Boolean!
+  commentOnStudentTask(commentOnStudentTask: CommentTaskInput!): Boolean!
   createTeacher(createTeacherInput: CreateTeachersInput!): Teachers!
   broadcastBasedOnSem(EnterMessageAndSem: BroadcastInput!): String!
-  studentLogin(loginUserInput: UserLoginInput!): loginUserObject!
+  userLogin(loginUserInput: UserLoginInput!): loginUserObject!
 }
 
 input CreateTasksType {
   task_name: String!
   semester: Float!
   subject_code: Float!
+  deadline: DateTime
 }
 
 input CreateCustomTasksType {
   task_name: String!
   username: String!
   content: [String!]
+  semester: Float
+  deadline: DateTime
 }
 
 input CreateSubjectInput {

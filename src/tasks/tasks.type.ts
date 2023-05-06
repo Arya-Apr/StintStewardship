@@ -20,4 +20,7 @@ export class TasksType {
 
   @Field(() => String)
   teacher: string;
+
+  @Field({ nullable: true })
+  deadline?: Date;
 }

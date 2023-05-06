@@ -35,4 +35,7 @@ export class Tasks {
   // })
   @Column()
   teacher: string;
+
+  @Column({ nullable: true })
+  deadline?: Date;
 }

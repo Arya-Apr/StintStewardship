@@ -15,7 +15,7 @@ export class SubjectService {
     createSubjectInput: CreateSubjectInput,
   ): Promise<Subject> {
     const { sub_code, sub_name, sub_of_sem } = createSubjectInput;
-    const subject = await this.subjectRepository.create({
+    const subject = this.subjectRepository.create({
       subject_id: uuid(),
       sub_code,
       sub_name,

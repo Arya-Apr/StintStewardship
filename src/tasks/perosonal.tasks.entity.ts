@@ -25,4 +25,10 @@ export class PersonalTasks {
 
   @Column({ nullable: true })
   alloted_user?: string;
+
+  @Column({ nullable: true })
+  semester?: number;
+
+  @Column({ nullable: true })
+  deadline?: Date;
 }

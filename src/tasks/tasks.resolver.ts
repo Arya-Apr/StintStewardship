@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Args, Mutation, Resolver, Query } from '@nestjs/graphql';
 import { TasksType } from './tasks.type';
 import { TasksService } from './tasks.service';
@@ -11,9 +12,9 @@ import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/role.enum';
 import { CreateCustomTasksType } from './task-custom.input.type';
 import { PersonalTasksType } from './task.input.custom';
+import { Interval } from '@nestjs/schedule';
 
 @Resolver(() => TasksType)
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class TasksResolver {
   constructor(
     private tasksService: TasksService,
@@ -21,6 +22,7 @@ export class TasksResolver {
   ) {}
 
   @Mutation(() => TasksType)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Teacher)
   async createTask(
     @Args('createTasksType') createTasksType: CreateTasksType,
@@ -28,22 +30,35 @@ export class TasksResolver {
     return await this.tasksService.createTask(createTasksType);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Teacher)
   @Query(() => [TasksType])
   async getTasks(): Promise<Tasks[]> {
     return await this.tasksService.getTasks();
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Teacher)
   @Mutation(() => Boolean)
   async deleteTask(@Args('id') id: string) {
     return this.tasksService.deleteTask(id);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Mutation(() => PersonalTasksType)
   async createTaskForPersonal(
     @Args('createForPersonalUse') createCustomTasksInput: CreateCustomTasksType,
   ) {
     return this.tasksService.createTaskForPersonal(createCustomTasksInput);
+  }
+
+  @Query(() => [TasksType])
+  async checkDeadlines(): Promise<any> {
+    return this.tasksService.checkDeadlines();
+  }
+
+  @Interval(86400000)
+  handle() {
+    this.checkDeadlines();
   }
 }
