@@ -41,6 +41,13 @@ type Students {
   comment: [String!]
 }
 
+type File {
+  file_id: String!
+  task_Name: String!
+  stud_id: String!
+  fileName: String!
+}
+
 type Teachers {
   teacher_id: ID!
   teacher_name: String!
@@ -68,7 +75,13 @@ type Query {
   getSubjects: [Subject!]!
   getSubjectById(subject_code: Float!): Subject!
   getStudents: [Students!]!
+  getFile(Cred: FileInput!): [File!]!
   getTeachers: [Teachers!]!
+}
+
+input FileInput {
+  stud_id: String!
+  task_name: String!
 }
 
 type Mutation {

@@ -9,6 +9,9 @@ import { CommentTaskInput } from './comment-task-input';
 import { RolesGuard } from 'src/auth/role.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/role.enum';
+import { FileType } from './file.type';
+import { FileInput } from './file.input';
+import { File } from './file.entity';
 
 @Resolver(() => StudentsType)
 export class StudentsResolver {
@@ -34,5 +37,10 @@ export class StudentsResolver {
     @Args('commentOnStudentTask') commentStudentTask: CommentTaskInput,
   ) {
     return this.studentsService.commentOnTask(commentStudentTask);
+  }
+
+  @Query(() => [FileType])
+  async getFile(@Args('Cred') fileInput: FileInput): Promise<File[]> {
+    return this.studentsService.getFile(fileInput);
   }
 }

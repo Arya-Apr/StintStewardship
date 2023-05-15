@@ -16,6 +16,7 @@ import { TeachersModule } from './teachers/teachers.module';
 import { AuthModule } from './auth/auth.module';
 import { PersonalTasks } from './tasks/perosonal.tasks.entity';
 import { ScheduleModule } from '@nestjs/schedule';
+import { File } from './students/file.entity';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { ScheduleModule } from '@nestjs/schedule';
       useNewUrlParser: true,
       useUnifiedTopology: true,
       autoLoadEntities: true,
-      entities: [Students, Tasks, Teachers, Subject, PersonalTasks],
+      entities: [Students, Tasks, Teachers, Subject, PersonalTasks, File],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,

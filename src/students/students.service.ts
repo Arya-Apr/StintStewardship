@@ -10,11 +10,15 @@ import { Tasks } from 'src/tasks/tasks.entity';
 import { TasksService } from 'src/tasks/tasks.service';
 import { CommentTaskInput } from './comment-task-input';
 import { PersonalTasks } from 'src/tasks/perosonal.tasks.entity';
+import { File } from './file.entity';
+import { FileUploadDto } from './file.upload.dto';
+import { FileInput } from './file.input';
 
 @Injectable()
 export class StudentsService {
   constructor(
     @InjectRepository(Students) private studentRepository: Repository<Students>,
+    @InjectRepository(File) private fileRepository: Repository<File>,
     @Inject(forwardRef(() => TasksService))
     private taskService: TasksService,
   ) {}
@@ -183,10 +187,49 @@ export class StudentsService {
     }
     throw new Error('Student Not Found');
   }
+  async getStudentById(stud_id: string) {
+    return this.studentRepository.findOneBy({ stud_id });
+  }
 
   async assignStudentsWithCustomTask(task: PersonalTasks) {
     const student = await this.getStudent(task.username);
     student.tasks = [...student.tasks, task.task_name];
     await this.studentRepository.save(student);
+  }
+
+  async uploadFile(filename: string, fileUploadDto: FileUploadDto) {
+    const { stud_Id, taskName } = fileUploadDto;
+    const task = await this.taskService.searchTaskByName(taskName);
+    if (task) {
+      const student = await this.getStudentById(stud_Id);
+      if (student) {
+        const file = await this.fileRepository.create({
+          fileName: filename,
+          stud_id: stud_Id,
+          file_id: uuid(),
+          task_Name: task.task_name,
+        });
+        return this.fileRepository.save(file);
+      }
+      throw new Error('Student was not found please check your Id');
+    }
+    throw new Error('No Such Task Found');
+  }
+
+  async getFile(fileInput: FileInput): Promise<File[]> {
+    const { stud_id, task_name } = fileInput;
+    const file = await this.fileRepository.find({
+      where: {
+        task_Name: task_name,
+        stud_id,
+      },
+    });
+    if (file.length !== 0) {
+      return file;
+    } else if (file.length === 0) {
+      throw new Error(
+        'Student Id or the task name was inccorect, please enter correct inputs',
+      );
+    }
   }
 }
