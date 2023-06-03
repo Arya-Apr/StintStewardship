@@ -34,6 +34,7 @@ const Login = ({ handleSubmit, onChangeHandler, state, loading, error }) => {
               value={state.username}
               placeholder='Your Username'
               onChange={onChangeHandler}
+              required
             />
           </fieldset>
           <fieldset className='Fieldset'>
@@ -49,6 +50,7 @@ const Login = ({ handleSubmit, onChangeHandler, state, loading, error }) => {
               placeholder='Your Password'
               autoComplete='false'
               onChange={onChangeHandler}
+              required
             />
           </fieldset>
           <button

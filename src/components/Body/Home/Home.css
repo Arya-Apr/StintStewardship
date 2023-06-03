@@ -3,8 +3,22 @@
   width: 100%;
   height: 914px;
   top: 110px;
-
   background: #e9d8a6;
+  place-items: center;
+
   border: 1px solid #000000;
+  display: grid;
   overflow: hidden;
+}
+
+.home-greet {
+  position: absolute;
+  color: #ee9b00;
+  opacity: 90%;
+  padding: 10px;
+  height: auto;
+  text-decoration: underline grey;
+  border-radius: 10px;
+  top: 20px;
+  background-color: black;
 }

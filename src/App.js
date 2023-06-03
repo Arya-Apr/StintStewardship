@@ -1,5 +1,5 @@
 import './App.css';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Route, Routes, Navigate, useNavigate } from 'react-router-dom';
 import Tasks from './components/Body/Tasks/Tasks';
 import Menu from './components/Menu/Menu';
@@ -18,15 +18,17 @@ const LOGIN_MUTATION = gql`
     }
   }
 `;
+
 function App() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [token, setToken] = useState(localStorage.getItem('authToken'));
   const [userLogin, { loading, error }] = useMutation(LOGIN_MUTATION);
   const [state, setState] = useState({
-    password: '',
-    username: '',
     role: '',
+    username: '',
+    password: '',
   });
+  useEffect(() => {}, [token]);
   const nav = useNavigate();
   const handleLogout = (e) => {
     e.preventDefault();
@@ -49,6 +51,12 @@ function App() {
             'authToken',
             response.data.userLogin.accessToken
           );
+          const token = localStorage.getItem('authToken');
+          const parts = token.split('.');
+          const payloadbase = parts[1];
+          const payload = JSON.parse(atob(payloadbase));
+          console.log(payload.username);
+          //USE THIS USERNAME TO GREET ON HOME PAGE
           setState({
             username: '',
             password: '',
@@ -61,12 +69,12 @@ function App() {
   };
   const onChangeHandler = (e) => {
     const value = e.target.value;
-
     setState({
       ...state,
       [e.target.id]: value,
     });
   };
+
   return (
     <div className='App' onClick={handle}>
       <Navbar
@@ -80,7 +88,7 @@ function App() {
         onLogout={handleLogout}
       />
       <Routes>
-        <Route path='/home' element={<Home />} />
+        <Route path='/home' element={<Home state={state} />} />
         <Route
           path='/tasks'
           element={

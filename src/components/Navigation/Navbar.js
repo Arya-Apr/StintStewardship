@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import SearchPanel from './search-panel/SearchPanel';
 import { Link } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
 import './Navbar.css';
 const Navbar = (props) => {
   const { setIsExpanded, token } = props;
+  useEffect(() => {}, [token]);
   const handle = () => {
     setIsExpanded(false);
   };

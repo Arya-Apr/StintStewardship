@@ -1,42 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-// import { ApolloClient, InMemoryCache, gql, useQuery } from '@apollo/client';
+import { useQuery, gql } from '@apollo/client';
 import './Body.css';
 
-// const client = new ApolloClient({
-//   uri: 'http://localhost:3001/graphql',
-//   cache: new InMemoryCache(),
-// });
-
-// const tasks = gql`
-//   query GetTasks {
-//     getTasks {
-//       alloted_students
-//       deadline
-//       subject_code
-//       semester
-//       task_name
-//       tasks_id
-//       teacher
-//     }
-//   }
-// `;
-
-const data1 = [
-  { id: 'item-1', content: 'Item 1' },
-  { id: 'item-2', content: 'Item 2' },
-  { id: 'item-3', content: 'Item 3' },
-];
-
-// const getListStyle = (isDraggingOver) => ({
-//   background: isDraggingOver ? 'lightblue' : 'lightgrey',
-//   borderRadius: 10,
-//   minHeight: 50,
-//   left: 400,
-//   top: 150,
-//   padding: 8,
-//   width: 250,
-// });
+const todoTasks = gql`
+  query Query($userName: String!) {
+    getAllTodoOfStudent(userName: $userName)
+  }
+`;
 
 const getItemStyle = (isDragging, draggableStyle) => ({
   userSelect: 'none',
@@ -53,15 +24,41 @@ const reorder = (list, startIndex, endIndex) => {
   return result;
 };
 const Tasks = (props) => {
+  const [name, setName] = useState('');
+  const todoData = useQuery(todoTasks, {
+    variables: { userName: name },
+  });
   const [items, setItems] = useState([]);
   const [items1, setItems1] = useState([]);
   const { setIsExpanded } = props;
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
-    setItems(data1);
+    //THE LOGIC HERE FETCHES THE TODO TASKS AND SHOWS THEM TO THE TAB!!
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      const parts = token.split('.');
+      const payloadbase = parts[1];
+      const payload = JSON.parse(atob(payloadbase));
+      setName(payload.username);
+    }
+
     setItems1([]);
     setIsMounted(true);
-  }, []);
+    if (todoData.data) {
+      const data1 = [
+        { id: 'item-1', content: 'Item 1' },
+        { id: 'item-2', content: 'Item 2' },
+        { id: 'item-3', content: 'Item 3' },
+      ];
+      const tododata1 = todoData.data.getAllTodoOfStudent.map((task) => {
+        return { id: `item-${task}`, content: `${task}` };
+      });
+      console.log(tododata1);
+      console.log(data1);
+      setItems(tododata1);
+      console.log(todoData.data.getAllTodoOfStudent);
+    }
+  }, [todoData]);
   const onDragEnd = (result) => {
     if (!result.destination) {
       return;
