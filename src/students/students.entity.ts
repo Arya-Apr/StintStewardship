@@ -6,6 +6,24 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
+@Entity()
+class TaskWithStatus {
+  @Column({ nullable: true })
+  todo: string[];
+
+  @Column({ nullable: true })
+  executing: string[];
+
+  @Column({ nullable: true })
+  completed: string[];
+
+  @Column({ nullable: true })
+  review: string[];
+
+  @Column({ nullable: true })
+  finished: string[];
+}
+
 @Entity('Students')
 export class Students {
   @ObjectIdColumn()
@@ -38,4 +56,7 @@ export class Students {
 
   @Column()
   role: 'student';
+
+  @Column({ nullable: true })
+  taskwithstatus?: TaskWithStatus;
 }

@@ -30,6 +30,14 @@ type Subject {
   sub_of_sem: Float!
 }
 
+type TasksWithStatusType {
+  todo: [String!]
+  executing: [String!]
+  completed: [String!]
+  review: [String!]
+  finished: [String!]
+}
+
 type Students {
   stud_id: ID!
   stud_name: String!
@@ -39,6 +47,7 @@ type Students {
   password: String!
   tasks: [String!]
   comment: [String!]
+  taskswithstatus: TasksWithStatusType
 }
 
 type File {
@@ -76,6 +85,8 @@ type Query {
   getSubjectById(subject_code: Float!): Subject!
   getStudents: [Students!]!
   getFile(Cred: FileInput!): [File!]!
+  getStudentByUsername(getStudentByName: String!): Students!
+  getAllTodoOfStudent(userName: String!): [String!]!
   getTeachers: [Teachers!]!
 }
 
@@ -92,6 +103,9 @@ type Mutation {
   deleteSubject(id: String!): Boolean!
   createStudent(createStudentInput: CreateStudentInput!): Students!
   commentOnStudentTask(commentOnStudentTask: CommentTaskInput!): Boolean!
+  moveTaskToExecuting(moveToExecution: MoveToStatusInput!): Boolean!
+  moveTaskToCompleted(moveToCompleted: MoveToStatusInput!): Boolean!
+  moveTaskToTodo(moveToTodo: MoveToStatusInput!): Boolean!
   createTeacher(createTeacherInput: CreateTeachersInput!): Teachers!
   broadcastBasedOnSem(EnterMessageAndSem: BroadcastInput!): String!
   userLogin(loginUserInput: UserLoginInput!): loginUserObject!
@@ -130,6 +144,11 @@ input CommentTaskInput {
   task_name: String!
   stud_name: String!
   comment: String!
+}
+
+input MoveToStatusInput {
+  task_name: String!
+  student_roll: Float!
 }
 
 input CreateTeachersInput {
