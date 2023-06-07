@@ -87,6 +87,10 @@ type Query {
   getFile(Cred: FileInput!): [File!]!
   getStudentByUsername(getStudentByName: String!): Students!
   getAllTodoOfStudent(userName: String!): [String!]!
+  getAllCompletedOfStudent(userName: String!): [String!]!
+  getAllExecutingOfStudent(userName: String!): [String!]!
+  getAllReviewOfStudent(userName: String!): [String!]!
+  getAllFinishedOfStudent(userName: String!): [String!]!
   getTeachers: [Teachers!]!
 }
 
@@ -105,6 +109,8 @@ type Mutation {
   commentOnStudentTask(commentOnStudentTask: CommentTaskInput!): Boolean!
   moveTaskToExecuting(moveToExecution: MoveToStatusInput!): Boolean!
   moveTaskToCompleted(moveToCompleted: MoveToStatusInput!): Boolean!
+  moveTaskToFinished(moveToFinished: MoveToStatusInput!): Boolean!
+  moveTaskToReview(moveToReview: MoveToStatusInput!): Boolean!
   moveTaskToTodo(moveToTodo: MoveToStatusInput!): Boolean!
   createTeacher(createTeacherInput: CreateTeachersInput!): Teachers!
   broadcastBasedOnSem(EnterMessageAndSem: BroadcastInput!): String!

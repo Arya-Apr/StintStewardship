@@ -63,6 +63,26 @@ export class StudentsResolver {
 
   @Mutation(() => Boolean)
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Teacher)
+  async moveTaskToFinished(
+    @Args('moveToFinished')
+    moveToStatusInput: MoveToStatusInput,
+  ): Promise<boolean> {
+    return this.studentsService.moveTaskToFinished(moveToStatusInput);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Teacher)
+  async moveTaskToReview(
+    @Args('moveToReview')
+    moveToStatusInput: MoveToStatusInput,
+  ): Promise<boolean> {
+    return this.studentsService.moveTaskToReview(moveToStatusInput);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Student)
   async moveTaskToTodo(
     @Args('moveToTodo')
@@ -92,5 +112,41 @@ export class StudentsResolver {
     @Args('userName') username: string,
   ): Promise<string[]> {
     return this.studentsService.getAllStudentTodo(username);
+  }
+
+  @Query(() => [String])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Student)
+  async getAllCompletedOfStudent(
+    @Args('userName') username: string,
+  ): Promise<string[]> {
+    return this.studentsService.getAllStudentCompletedList(username);
+  }
+
+  @Query(() => [String])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Student)
+  async getAllExecutingOfStudent(
+    @Args('userName') username: string,
+  ): Promise<string[]> {
+    return this.studentsService.getAllStudentExecuting(username);
+  }
+
+  @Query(() => [String])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Student)
+  async getAllReviewOfStudent(
+    @Args('userName') username: string,
+  ): Promise<string[]> {
+    return this.studentsService.getAllStudentReviewList(username);
+  }
+
+  @Query(() => [String])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Student)
+  async getAllFinishedOfStudent(
+    @Args('userName') username: string,
+  ): Promise<string[]> {
+    return this.studentsService.getAllStudentFinishedList(username);
   }
 }

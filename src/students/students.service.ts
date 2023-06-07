@@ -379,6 +379,165 @@ export class StudentsService {
     }
   }
 
+  async moveTaskToFinished(
+    moveToStatusInput: MoveToStatusInput,
+  ): Promise<boolean> {
+    const { student_roll, task_name } = moveToStatusInput;
+    const task = await this.taskService.searchTaskByName(task_name);
+    const student = await this.studentRepository.findOne({
+      where: { stud_roll: student_roll },
+    });
+    if (student) {
+      const indexincompleted =
+        student.taskwithstatus.completed.indexOf(task_name);
+      const indexinexecuting =
+        student.taskwithstatus.executing.indexOf(task_name);
+      const indexintodo = student.taskwithstatus.todo.indexOf(task_name);
+      const indexinreview = student.taskwithstatus.review.indexOf(task_name);
+      if (student.tasks.includes(task_name)) {
+        if (task) {
+          if (indexincompleted !== -1) {
+            student.taskwithstatus.completed.splice(indexincompleted, 1);
+            await this.studentRepository.update(student._id, {
+              taskwithstatus: {
+                todo: [...student.taskwithstatus.todo],
+                executing: [...student.taskwithstatus.executing],
+                completed: student.taskwithstatus.completed,
+                review: [...student.taskwithstatus.review],
+                finished: [...student.taskwithstatus.finished, task.task_name],
+              },
+            });
+            return true;
+          } else if (indexinexecuting !== -1) {
+            student.taskwithstatus.executing.splice(indexinexecuting, 1);
+            await this.studentRepository.update(student._id, {
+              taskwithstatus: {
+                todo: [...student.taskwithstatus.todo],
+                executing: student.taskwithstatus.executing,
+                completed: [...student.taskwithstatus.completed],
+                review: [...student.taskwithstatus.review],
+                finished: [...student.taskwithstatus.finished, task.task_name],
+              },
+            });
+            return true;
+          } else if (indexintodo !== -1) {
+            student.taskwithstatus.todo.splice(indexintodo, 1);
+            await this.studentRepository.update(student._id, {
+              taskwithstatus: {
+                todo: student.taskwithstatus.todo,
+                executing: [...student.taskwithstatus.executing],
+                completed: [...student.taskwithstatus.completed],
+                review: [...student.taskwithstatus.review],
+                finished: [...student.taskwithstatus.finished, task.task_name],
+              },
+            });
+            return true;
+          } else if (indexinreview !== -1) {
+            student.taskwithstatus.review.splice(indexinreview, 1);
+            await this.studentRepository.update(student._id, {
+              taskwithstatus: {
+                todo: [...student.taskwithstatus.todo],
+                executing: [...student.taskwithstatus.executing],
+                completed: [...student.taskwithstatus.completed],
+                review: student.taskwithstatus.review,
+                finished: [...student.taskwithstatus.finished, task.task_name],
+              },
+            });
+            return true;
+          } else {
+            return false;
+          }
+        } else {
+          throw new Error('Task Not Found');
+        }
+      } else {
+        throw new Error('This task is not for this student');
+      }
+    } else {
+      throw new Error('Student Not Found');
+    }
+  }
+
+  async moveTaskToReview(
+    moveToStatusInput: MoveToStatusInput,
+  ): Promise<boolean> {
+    const { student_roll, task_name } = moveToStatusInput;
+    const task = await this.taskService.searchTaskByName(task_name);
+    const student = await this.studentRepository.findOne({
+      where: { stud_roll: student_roll },
+    });
+    if (student) {
+      const indexincompleted =
+        student.taskwithstatus.completed.indexOf(task_name);
+      const indexinexecuting =
+        student.taskwithstatus.executing.indexOf(task_name);
+      const indexintodo = student.taskwithstatus.todo.indexOf(task_name);
+      const indexinfinished =
+        student.taskwithstatus.finished.indexOf(task_name);
+      if (student.tasks.includes(task_name)) {
+        if (task) {
+          if (indexincompleted !== -1) {
+            student.taskwithstatus.completed.splice(indexincompleted, 1);
+            await this.studentRepository.update(student._id, {
+              taskwithstatus: {
+                todo: [...student.taskwithstatus.todo],
+                executing: [...student.taskwithstatus.executing],
+                completed: student.taskwithstatus.completed,
+                review: [...student.taskwithstatus.review, task.task_name],
+                finished: [...student.taskwithstatus.finished],
+              },
+            });
+            return true;
+          } else if (indexinexecuting !== -1) {
+            student.taskwithstatus.executing.splice(indexinexecuting, 1);
+            await this.studentRepository.update(student._id, {
+              taskwithstatus: {
+                todo: [...student.taskwithstatus.todo],
+                executing: student.taskwithstatus.executing,
+                completed: [...student.taskwithstatus.completed],
+                review: [...student.taskwithstatus.review, task.task_name],
+                finished: [...student.taskwithstatus.finished],
+              },
+            });
+            return true;
+          } else if (indexintodo !== -1) {
+            student.taskwithstatus.todo.splice(indexintodo, 1);
+            await this.studentRepository.update(student._id, {
+              taskwithstatus: {
+                todo: student.taskwithstatus.todo,
+                executing: [...student.taskwithstatus.executing],
+                completed: [...student.taskwithstatus.completed],
+                review: [...student.taskwithstatus.review, task.task_name],
+                finished: [...student.taskwithstatus.finished],
+              },
+            });
+            return true;
+          } else if (indexinfinished !== -1) {
+            student.taskwithstatus.finished.splice(indexinfinished, 1);
+            await this.studentRepository.update(student._id, {
+              taskwithstatus: {
+                todo: [...student.taskwithstatus.todo],
+                executing: [...student.taskwithstatus.executing],
+                completed: [...student.taskwithstatus.completed],
+                review: [...student.taskwithstatus.review, task.task_name],
+                finished: student.taskwithstatus.finished,
+              },
+            });
+            return true;
+          } else {
+            return false;
+          }
+        } else {
+          throw new Error('Task Not Found');
+        }
+      } else {
+        throw new Error('This task is not for this student');
+      }
+    } else {
+      throw new Error('Student Not Found');
+    }
+  }
+
   async searchStudentByName(stud_name: string): Promise<Students> {
     return await this.studentRepository.findOne({ where: { stud_name } });
   }
@@ -489,8 +648,46 @@ export class StudentsService {
         return task;
       });
       return todos;
-    } else {
-      throw new Error('Student was not found');
+    }
+  }
+
+  async getAllStudentExecuting(username: string) {
+    const student = await this.getStudent(username);
+    if (student) {
+      const executing = student.taskwithstatus.executing.map((task) => {
+        return task;
+      });
+      return executing;
+    }
+  }
+
+  async getAllStudentCompletedList(username: string) {
+    const student = await this.getStudent(username);
+    if (student) {
+      const completed = student.taskwithstatus.completed.map((task) => {
+        return task;
+      });
+      return completed;
+    }
+  }
+
+  async getAllStudentReviewList(username: string) {
+    const student = await this.getStudent(username);
+    if (student) {
+      const review = student.taskwithstatus.review.map((task) => {
+        return task;
+      });
+      return review;
+    }
+  }
+
+  async getAllStudentFinishedList(username: string) {
+    const student = await this.getStudent(username);
+    if (student) {
+      const finished = student.taskwithstatus.finished.map((task) => {
+        return task;
+      });
+      return finished;
     }
   }
 }
