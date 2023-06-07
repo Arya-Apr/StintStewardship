@@ -8,7 +8,7 @@ const GET_USER = gql`
     }
   }
 `;
-const Home = ({ state }) => {
+const Home = () => {
   const [name, setName] = useState('');
   const [displayName, setDisplayName] = useState('');
   const getNameQuery = useQuery(GET_USER, {

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import './Icons.css';
 import { NavLink } from 'react-router-dom';
 const icons = [
@@ -50,7 +50,6 @@ const icons = [
 ];
 const Icons = ({ isExpanded, onLogout }) => {
   const token = localStorage.getItem('authToken');
-  useEffect(() => {}, [token]);
   return (
     <>
       {isExpanded ? (
