@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useQuery, gql, useMutation } from '@apollo/client';
+import { useSnackbar } from 'notistack';
+
 import './Body.css';
 const stud_roll = gql`
   query GetStudentByUsername($getStudentByName: String!) {
@@ -64,6 +66,8 @@ const getItemStyle = (isDragging, draggableStyle) => ({
 });
 
 const Tasks = (props) => {
+  const { enqueueSnackbar } = useSnackbar();
+
   const [name, setName] = useState('');
   const todoData = useQuery(todoTasks, {
     variables: { userName: name },
@@ -200,6 +204,9 @@ const Tasks = (props) => {
   const onDragEnd = (result) => {
     const { destination, source } = result;
     if (!destination) {
+      enqueueSnackbar('Not Found ☠️', {
+        style: { background: 'red' },
+      });
       return;
     }
 
@@ -228,6 +235,15 @@ const Tasks = (props) => {
           .then((response) => {
             if (response) {
               console.log(response.data.moveTaskToExecuting);
+              if (response.data.moveTaskToExecuting) {
+                enqueueSnackbar('Switched! ⚙️', {
+                  style: { background: 'Purple' },
+                });
+              } else {
+                enqueueSnackbar('Try That Again! 😣', {
+                  style: { background: 'red' },
+                });
+              }
             }
           })
           .catch((error) => {
@@ -245,6 +261,15 @@ const Tasks = (props) => {
           .then((response) => {
             if (response) {
               console.log(response.data.moveTaskToTodo);
+              if (response.data.moveTaskToTodo) {
+                enqueueSnackbar('Switched! ⚙️', {
+                  style: { background: 'Purple' },
+                });
+              } else {
+                enqueueSnackbar('Try That Again! 😣', {
+                  style: { background: 'red' },
+                });
+              }
             }
           })
           .catch((error) => {
@@ -262,6 +287,15 @@ const Tasks = (props) => {
           .then((response) => {
             if (response) {
               console.log(response.data.moveTaskToCompleted);
+              if (response.data.moveTaskToCompleted) {
+                enqueueSnackbar('Switched! ⚙️', {
+                  style: { background: 'Purple' },
+                });
+              } else {
+                enqueueSnackbar('Try That Again! 😣', {
+                  style: { background: 'red' },
+                });
+              }
             }
           })
           .catch((error) => {
@@ -278,6 +312,8 @@ const Tasks = (props) => {
   };
   return (
     <div className='body' onClick={handle}>
+      <div className='title-for-page'>Your School Tasks</div>
+
       <div className='dndcontext'>
         <DragDropContext onDragEnd={onDragEnd} enableDefaultSensors>
           {isMounted ? (
@@ -293,7 +329,7 @@ const Tasks = (props) => {
                       }`,
                       position: 'absolute',
                       left: 140,
-                      top: 50,
+                      top: 70,
                       borderRadius: 10,
                       padding: 8,
                       width: 250,
@@ -341,7 +377,7 @@ const Tasks = (props) => {
                       left: 415,
                       borderRadius: 10,
                       padding: 8,
-                      top: 50,
+                      top: 70,
                       width: 250,
                       minHeight: 50,
                     }}
@@ -386,7 +422,7 @@ const Tasks = (props) => {
                       left: 695,
                       borderRadius: 10,
                       padding: 8,
-                      top: 50,
+                      top: 70,
                       width: 250,
                       minHeight: 50,
                     }}
@@ -434,7 +470,7 @@ const Tasks = (props) => {
                       left: 975,
                       borderRadius: 10,
                       padding: 8,
-                      top: 50,
+                      top: 70,
                       width: 250,
                       minHeight: 50,
                     }}
@@ -483,7 +519,7 @@ const Tasks = (props) => {
                       left: 1255,
                       borderRadius: 10,
                       padding: 8,
-                      top: 50,
+                      top: 70,
                       width: 250,
                       minHeight: 50,
                     }}

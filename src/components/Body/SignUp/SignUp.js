@@ -3,6 +3,8 @@ import * as Tabs from '@radix-ui/react-tabs';
 import * as ScrollArea from '@radix-ui/react-scroll-area';
 import { gql, useMutation } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
+import { useSnackbar } from 'notistack';
+
 import './SignUp.css';
 
 const STUDENT_SIGN = gql`
@@ -30,6 +32,8 @@ const TEACHER_SIGN = gql`
 `;
 
 const SignUp = () => {
+  const { enqueueSnackbar } = useSnackbar();
+
   const [name, setName] = useState('');
   const [subject, setSubject] = useState('');
   const [username, setUsername] = useState('');
@@ -62,10 +66,16 @@ const SignUp = () => {
             setRoll('');
             nav('/login');
             console.log(response);
+            enqueueSnackbar('SignUp Successfull! 🎉', {
+              style: { background: 'lightblue' },
+            });
           }
         })
         .catch((error) => {
           console.log(error);
+          enqueueSnackbar(`${error.message} 🥶`, {
+            style: { background: 'red' },
+          });
         });
     }
     if (e.target.id === 'form2') {
@@ -87,9 +97,17 @@ const SignUp = () => {
             setSubject('');
             nav('/login');
             console.log(response);
+            enqueueSnackbar('SignUp Successfull! 🎉', {
+              style: { background: 'lightblue' },
+            });
           }
         })
-        .catch((error) => console.log(error));
+        .catch((error) => {
+          console.log(error);
+          enqueueSnackbar(`${error.message} 🥶`, {
+            style: { background: 'red' },
+          });
+        });
     }
   };
   return (
@@ -122,6 +140,7 @@ const SignUp = () => {
                     name='name'
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    required
                   />
                 </fieldset>
                 <fieldset className='Fieldset'>
@@ -135,6 +154,7 @@ const SignUp = () => {
                     name='roll'
                     value={roll}
                     onChange={(e) => setRoll(e.target.value)}
+                    required
                   />
                 </fieldset>
                 <fieldset className='Fieldset'>
@@ -148,6 +168,7 @@ const SignUp = () => {
                     name='sem'
                     value={semester}
                     onChange={(e) => setSemester(e.target.value)}
+                    required
                   />
                 </fieldset>
                 <fieldset className='Fieldset'>
@@ -161,6 +182,7 @@ const SignUp = () => {
                     name='username'
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
+                    required
                   />
                 </fieldset>
                 <fieldset className='Fieldset'>
@@ -176,6 +198,7 @@ const SignUp = () => {
                     name='password'
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    required
                   />
                 </fieldset>
                 <div
@@ -219,6 +242,7 @@ const SignUp = () => {
                     name='name'
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    required
                   />
                 </fieldset>
                 <fieldset className='Fieldset'>
@@ -233,6 +257,7 @@ const SignUp = () => {
                     name='subject'
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
+                    required
                   />
                 </fieldset>
                 <fieldset className='Fieldset'>
@@ -247,6 +272,7 @@ const SignUp = () => {
                     name='username'
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
+                    required
                   />
                 </fieldset>
                 <fieldset className='Fieldset'>
@@ -262,6 +288,7 @@ const SignUp = () => {
                     name='password'
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    required
                   />
                 </fieldset>
                 <div

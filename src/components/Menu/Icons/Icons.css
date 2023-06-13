@@ -59,3 +59,7 @@ a.active:hover {
   filter: brightness(150%);
   display: list-item;
 }
+
+.add-task-logo {
+  padding-left: 10px;
+}

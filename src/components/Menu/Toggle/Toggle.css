@@ -1,13 +1,13 @@
 .toggle {
   position: absolute;
   left: 109.575px;
-  z-index: 1;
+  z-index: 2;
   top: 110px;
   transition: left 0.5s linear;
   box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.34);
 }
 .align {
-  background: #ffb8b8;
+  background: #fdd3d3;
   padding-bottom: 5px;
   border-left: 0;
   border-top: 1;
@@ -17,7 +17,7 @@
 .toggle.expand {
   position: absolute;
   left: 300px;
-  z-index: 2;
+  z-index: 3;
   top: 110px;
   transition: left 0.5s linear;
   box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.34);

@@ -1,7 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useSnackbar } from 'notistack';
 import './Login.css';
+import { NavLink } from 'react-router-dom';
 
 const Login = ({ handleSubmit, onChangeHandler, state, loading, error }) => {
+  const { enqueueSnackbar } = useSnackbar();
+  useEffect(() => {
+    enqueueSnackbar(`Welcome To StintStwardship! 🙏🏻`, {
+      preventDuplicate: 'true',
+      style: { background: '#ee9b00' },
+    });
+  }, [enqueueSnackbar]);
   return (
     <div className='login'>
       <div className='login-div'>
@@ -53,6 +62,13 @@ const Login = ({ handleSubmit, onChangeHandler, state, loading, error }) => {
               required
             />
           </fieldset>
+          <p style={{ color: '#EE9B00' }}>
+            New User?{' '}
+            <NavLink to={'/signup'} style={{ color: '#ee9b00' }}>
+              SignUp
+            </NavLink>
+            {error && <p style={{ color: 'white' }}>{error.message}</p>}
+          </p>
           <button
             className='login-button green'
             type='submit'
@@ -60,7 +76,6 @@ const Login = ({ handleSubmit, onChangeHandler, state, loading, error }) => {
           >
             {loading ? 'Logging In...' : 'LogIn'}
           </button>
-          {error && <p style={{ color: 'white' }}>{error.message}</p>}
         </form>
       </div>
     </div>

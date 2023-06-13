@@ -9,13 +9,7 @@
   overflow: hidden;
   display: grid;
 }
-/* .drop {
-  position: absolute;
-  display: flex;
-  left: 530px;
-  top: 150px;
-  gap: 50px;
-} */
+
 .card:hover {
   box-shadow: 0 0 5px black;
   transform: scale(1);
@@ -23,6 +17,33 @@
 
 .task-status-name {
   text-decoration: underline solid rgb(110, 108, 108);
+}
+
+.title-for-page {
+  display: grid;
+  position: absolute;
+  top: 15px;
+  color: #ee9b00;
+  opacity: 90%;
+  padding: 10px;
+  text-decoration: underline grey;
+  border-radius: 10px;
+  padding-top: 5px;
+  background-color: black;
+}
+
+.add-tasks {
+  display: grid;
+  position: absolute;
+  color: #ee9b00;
+  top: 15px;
+  right: 100px;
+  opacity: 90%;
+  padding: 10px;
+  text-decoration: underline grey;
+  border-radius: 10px;
+  padding-top: 5px;
+  background-color: black;
 }
 
 .isLogin {
@@ -36,4 +57,15 @@
   text-decoration: underline solid;
   opacity: 9 0%;
   border-radius: 10px;
+}
+
+.add-task-button {
+  text-decoration: none;
+  color: #ee9b00;
+  background-color: transparent;
+  border: 0px;
+}
+.title-button {
+  display: grid;
+  place-items: center;
 }
