@@ -4,7 +4,6 @@ import { TasksType } from './tasks.type';
 import { TasksService } from './tasks.service';
 import { Tasks } from './tasks.entity';
 import { CreateTasksType } from './create-tasks.input';
-import { SubjectService } from 'src/subject/subject.service';
 import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
 import { RolesGuard } from 'src/auth/role.guard';
 import { UseGuards } from '@nestjs/common';
@@ -16,10 +15,7 @@ import { Interval } from '@nestjs/schedule';
 
 @Resolver(() => TasksType)
 export class TasksResolver {
-  constructor(
-    private tasksService: TasksService,
-    private subjectService: SubjectService,
-  ) {}
+  constructor(private tasksService: TasksService) {}
 
   @Mutation(() => TasksType)
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -38,10 +34,15 @@ export class TasksResolver {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.Teacher)
   @Mutation(() => Boolean)
   async deleteTask(@Args('id') id: string) {
     return this.tasksService.deleteTask(id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Mutation(() => Boolean)
+  async deleteTaskForTeacher(@Args('id') id: string) {
+    return this.tasksService.deleteTaskForTeacher(id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -52,7 +53,14 @@ export class TasksResolver {
     return this.tasksService.createTaskForPersonal(createCustomTasksInput);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Teacher)
   @Query(() => [TasksType])
+  async getTasksByTeacher(@Args('getTasks') username: string) {
+    return this.tasksService.getTasksByTeacher(username);
+  }
+
+  @Query(() => [Boolean])
   async checkDeadlines(): Promise<any> {
     return this.tasksService.checkDeadlines();
   }

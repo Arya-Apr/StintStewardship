@@ -6,6 +6,24 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
+@Entity()
+class TaskWithStatus {
+  @Column({ nullable: true })
+  todo: string[];
+
+  @Column({ nullable: true })
+  executing: string[];
+
+  @Column({ nullable: true })
+  completed: string[];
+
+  @Column({ nullable: true })
+  review: string[];
+
+  @Column({ nullable: true })
+  finished: string[];
+}
+
 @Entity('Teachers')
 export class Teachers {
   @ObjectIdColumn()
@@ -30,6 +48,9 @@ export class Teachers {
   // @ManyToMany(() => Tasks, (task) => task.task_name, { eager: true })
   @Column({ nullable: true })
   assigned_tasks?: string[];
+
+  @Column({ nullable: true })
+  personalTasks?: TaskWithStatus;
 
   @Column()
   role: 'teacher';

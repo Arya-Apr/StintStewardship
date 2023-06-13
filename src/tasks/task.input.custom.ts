@@ -18,9 +18,6 @@ export class PersonalTasksType {
   @Field(() => String, { nullable: true })
   alloted_user?: string;
 
-  @Field({ nullable: true })
-  semester?: number;
-
-  @Field(() => Date, { nullable: true })
-  deadline?: Date;
+  @Field(() => String, { nullable: true })
+  deadline?: string;
 }

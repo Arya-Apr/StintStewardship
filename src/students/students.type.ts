@@ -47,4 +47,7 @@ export class StudentsType {
 
   @Field(() => TasksWithStatusType, { nullable: true })
   taskswithstatus?: TasksWithStatusType;
+
+  @Field(() => TasksWithStatusType, { nullable: true })
+  personalTasks?: TasksWithStatusType;
 }

@@ -19,8 +19,7 @@ type PersonalTasks {
   username: String!
   content: [String!]
   alloted_user: String
-  semester: Float
-  deadline: DateTime
+  deadline: String
 }
 
 type Subject {
@@ -48,6 +47,7 @@ type Students {
   tasks: [String!]
   comment: [String!]
   taskswithstatus: TasksWithStatusType
+  personalTasks: TasksWithStatusType
 }
 
 type File {
@@ -57,11 +57,20 @@ type File {
   fileName: String!
 }
 
+type TasksWithStatusTypeForTeacher {
+  todo: [String!]
+  executing: [String!]
+  completed: [String!]
+  review: [String!]
+  finished: [String!]
+}
+
 type Teachers {
   teacher_id: ID!
   teacher_name: String!
   teacher_subject: String!
   assigned_tasks: [String!]
+  personalTasks: TasksWithStatusTypeForTeacher
 }
 
 type loginUserObject {
@@ -80,18 +89,36 @@ input UserLoginInput {
 
 type Query {
   getTasks: [Tasks!]!
-  checkDeadlines: [Tasks!]!
+  getTasksByTeacher(getTasks: String!): [Tasks!]!
+  checkDeadlines: [Boolean!]!
   getSubjects: [Subject!]!
   getSubjectById(subject_code: Float!): Subject!
   getStudents: [Students!]!
   getFile(Cred: FileInput!): [File!]!
   getStudentByUsername(getStudentByName: String!): Students!
   getAllTodoOfStudent(userName: String!): [String!]!
+  getAllPersonalTodoOfStudent(userName: String!): [String!]!
   getAllCompletedOfStudent(userName: String!): [String!]!
+  getAllPersonalCompletedOfStudent(userName: String!): [String!]!
   getAllExecutingOfStudent(userName: String!): [String!]!
+  getAllPersonalExecutingOfStudent(userName: String!): [String!]!
   getAllReviewOfStudent(userName: String!): [String!]!
+  getAllPersonalReviewOfStudent(userName: String!): [String!]!
   getAllFinishedOfStudent(userName: String!): [String!]!
+  getAllPersonalFinishedOfStudent(userName: String!): [String!]!
+  getCountOfPersonalTasks(username: String!): [Float!]!
+  getCountOfSchoolTasks(username: String!): [Float!]!
+  getAllCount(username: String!): [[Float!]!]!
+  getRecent(username: String!): [String!]!
   getTeachers: [Teachers!]!
+  getTeacher(username: String!): Teachers!
+  getAllFinishedOfTeacher(userName: String!): [String!]!
+  getAllReviewOfTeacher(userName: String!): [String!]!
+  getAllCompletedOfTeacher(userName: String!): [String!]!
+  getAllExecutingOfTeacher(userName: String!): [String!]!
+  getAllTodoOfTeacher(userName: String!): [String!]!
+  getRecentTeacher(username: String!): [String!]!
+  getCountOfTeacherPersonalTasks(username: String!): [Float!]!
 }
 
 input FileInput {
@@ -102,6 +129,7 @@ input FileInput {
 type Mutation {
   createTask(createTasksType: CreateTasksType!): Tasks!
   deleteTask(id: String!): Boolean!
+  deleteTaskForTeacher(id: String!): Boolean!
   createTaskForPersonal(createForPersonalUse: CreateCustomTasksType!): PersonalTasks!
   createSubject(createSubjectInput: CreateSubjectInput!): Subject!
   deleteSubject(id: String!): Boolean!
@@ -110,10 +138,17 @@ type Mutation {
   moveTaskToExecuting(moveToExecution: MoveToStatusInput!): Boolean!
   moveTaskToCompleted(moveToCompleted: MoveToStatusInput!): Boolean!
   moveTaskToFinished(moveToFinished: MoveToStatusInput!): Boolean!
+  movePersonalTaskToFinished(moveToFinished: MoveToStatusInput!): Boolean!
   moveTaskToReview(moveToReview: MoveToStatusInput!): Boolean!
+  movePersonalTaskToReview(moveToReview: MoveToStatusInput!): Boolean!
   moveTaskToTodo(moveToTodo: MoveToStatusInput!): Boolean!
   createTeacher(createTeacherInput: CreateTeachersInput!): Teachers!
   broadcastBasedOnSem(EnterMessageAndSem: BroadcastInput!): String!
+  moveTaskToExecutingForTeacher(moveToExecution: SwitchStatusInput!): Boolean!
+  moveTaskToCompletedForTeacher(moveToCompleted: SwitchStatusInput!): Boolean!
+  moveTaskToFinishedForTeacher(moveToFinished: SwitchStatusInput!): Boolean!
+  moveTaskToReviewForTeacher(moveToReview: SwitchStatusInput!): Boolean!
+  moveTaskToTodoForTeacher(moveToTodo: SwitchStatusInput!): Boolean!
   userLogin(loginUserInput: UserLoginInput!): loginUserObject!
 }
 
@@ -128,8 +163,7 @@ input CreateCustomTasksType {
   task_name: String!
   username: String!
   content: [String!]
-  semester: Float
-  deadline: DateTime
+  deadline: String
 }
 
 input CreateSubjectInput {
@@ -168,4 +202,9 @@ input BroadcastInput {
   message: String!
   semester: Float!
   name_of_teacher: String!
+}
+
+input SwitchStatusInput {
+  task_name: String!
+  teacher_username: String!
 }

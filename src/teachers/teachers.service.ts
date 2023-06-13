@@ -10,6 +10,8 @@ import { SubjectService } from 'src/subject/subject.service';
 import { BroadcastInput } from './broadcast-student.input';
 import { StudentsService } from 'src/students/students.service';
 import { PersonalTasks } from 'src/tasks/perosonal.tasks.entity';
+import { TasksService } from 'src/tasks/tasks.service';
+import { SwitchStatusInput } from './switchStatus.input';
 
 @Injectable()
 export class TeachersService {
@@ -19,6 +21,8 @@ export class TeachersService {
     private subjectService: SubjectService,
     @Inject(forwardRef(() => StudentsService))
     private studentService: StudentsService,
+    @Inject(forwardRef(() => TasksService))
+    private taskService: TasksService,
   ) {}
 
   async createTeacher(
@@ -35,6 +39,13 @@ export class TeachersService {
       username,
       assigned_tasks: [],
       role: 'teacher',
+      personalTasks: {
+        todo: [],
+        executing: [],
+        completed: [],
+        review: [],
+        finished: [],
+      },
     });
     if (teacher) {
       const mailTransporter = createTransport({
@@ -81,7 +92,6 @@ export class TeachersService {
         username,
       },
     });
-
     return teacher;
   }
 
@@ -139,9 +149,574 @@ export class TeachersService {
     throw new Error('Teacher Not Found');
   }
 
-  async assignTeachersWithCustomTask(task: PersonalTasks) {
+  async assignTeacherWithPersonalTask(task: PersonalTasks) {
     const teacher = await this.getTeacher(task.username);
-    teacher.assigned_tasks = [...teacher.assigned_tasks, task.task_name];
-    await this.teachersRepository.save(teacher);
+    if (teacher) {
+      teacher.assigned_tasks = [...teacher.assigned_tasks, task.task_name];
+      teacher.personalTasks.todo = [
+        ...teacher.personalTasks.todo,
+        task.task_name,
+      ];
+      await this.teachersRepository.save(teacher);
+    } else {
+      throw new Error('Teacher Not Found');
+    }
+  }
+
+  async removeTaskFromTeacher(task_name: string) {
+    const personalTask = await this.taskService.getPersonalTaskByName(
+      task_name,
+    );
+    if (personalTask) {
+      const teacher = await this.getTeacher(personalTask.username);
+      const index = teacher.assigned_tasks.indexOf(personalTask.task_name);
+      const indexintodo = teacher.personalTasks.todo.indexOf(
+        personalTask.task_name,
+      );
+      const indexinexecuting = teacher.personalTasks.executing.indexOf(
+        personalTask.task_name,
+      );
+      const indexincompleted = teacher.personalTasks.completed.indexOf(
+        personalTask.task_name,
+      );
+      const indexinreview = teacher.personalTasks.review.indexOf(
+        personalTask.task_name,
+      );
+      const indexinfinished = teacher.personalTasks.finished.indexOf(
+        personalTask.task_name,
+      );
+
+      if (index !== -1) {
+        teacher.assigned_tasks.splice(index, 1);
+        await this.teachersRepository.update(teacher._id, {
+          assigned_tasks: teacher.assigned_tasks,
+        });
+      }
+      if (indexintodo !== -1) {
+        teacher.personalTasks.todo.splice(indexintodo, 1);
+        await this.teachersRepository.update(teacher._id, {
+          personalTasks: {
+            todo: teacher.personalTasks.todo,
+            executing: [...teacher.personalTasks.executing],
+            completed: [...teacher.personalTasks.completed],
+            review: [...teacher.personalTasks.review],
+            finished: [...teacher.personalTasks.finished],
+          },
+        });
+      }
+      if (indexinexecuting !== -1) {
+        teacher.personalTasks.executing.splice(indexinexecuting, 1);
+        await this.teachersRepository.update(teacher._id, {
+          personalTasks: {
+            todo: [...teacher.personalTasks.todo],
+            executing: teacher.personalTasks.executing,
+            completed: [...teacher.personalTasks.completed],
+            review: [...teacher.personalTasks.review],
+            finished: [...teacher.personalTasks.finished],
+          },
+        });
+      }
+      if (indexincompleted !== -1) {
+        teacher.personalTasks.completed.splice(indexincompleted, 1);
+        await this.teachersRepository.update(teacher._id, {
+          personalTasks: {
+            todo: [...teacher.personalTasks.todo],
+            executing: [...teacher.personalTasks.executing],
+            completed: teacher.personalTasks.completed,
+            review: [...teacher.personalTasks.review],
+            finished: [...teacher.personalTasks.finished],
+          },
+        });
+      }
+      if (indexinreview !== -1) {
+        teacher.personalTasks.review.splice(indexinreview, 1);
+        await this.teachersRepository.update(teacher._id, {
+          personalTasks: {
+            todo: [...teacher.personalTasks.todo],
+            executing: [...teacher.personalTasks.executing],
+            completed: [...teacher.personalTasks.completed],
+            review: teacher.personalTasks.review,
+            finished: [...teacher.personalTasks.finished],
+          },
+        });
+      }
+      if (indexinfinished !== -1) {
+        teacher.personalTasks.finished.splice(indexinfinished, 1);
+        await this.teachersRepository.update(teacher._id, {
+          personalTasks: {
+            todo: [...teacher.personalTasks.todo],
+            executing: [...teacher.personalTasks.executing],
+            completed: [...teacher.personalTasks.completed],
+            review: [...teacher.personalTasks.review],
+            finished: teacher.personalTasks.finished,
+          },
+        });
+      }
+    }
+  }
+
+  async moveTaskToExecution(
+    moveToStatusInput: SwitchStatusInput,
+  ): Promise<boolean> {
+    const { task_name, teacher_username } = moveToStatusInput;
+    const personalTask = await this.taskService.getPersonalTaskByName(
+      task_name,
+    );
+    const teacher = await this.teachersRepository.findOne({
+      where: { username: teacher_username },
+    });
+    if (teacher) {
+      if (teacher.assigned_tasks.includes(task_name)) {
+        if (personalTask) {
+          const indexintodo = teacher.personalTasks.todo.indexOf(
+            personalTask.task_name,
+          );
+          const indexincompleted = teacher.personalTasks.completed.indexOf(
+            personalTask.task_name,
+          );
+          if (indexintodo !== -1) {
+            teacher.personalTasks.todo.splice(indexintodo, 1);
+            await this.teachersRepository.update(teacher._id, {
+              personalTasks: {
+                todo: teacher.personalTasks.todo,
+                executing: [
+                  ...teacher.personalTasks.executing,
+                  personalTask.task_name,
+                ],
+                completed: [...teacher.personalTasks.completed],
+                review: [...teacher.personalTasks.review],
+                finished: [...teacher.personalTasks.finished],
+              },
+            });
+            return true;
+          } else if (indexincompleted !== -1) {
+            teacher.personalTasks.completed.splice(indexincompleted, 1);
+            await this.teachersRepository.update(teacher._id, {
+              personalTasks: {
+                todo: [...teacher.personalTasks.todo],
+                executing: [
+                  ...teacher.personalTasks.executing,
+                  personalTask.task_name,
+                ],
+                completed: teacher.personalTasks.completed,
+                review: [...teacher.personalTasks.review],
+                finished: [...teacher.personalTasks.finished],
+              },
+            });
+            return true;
+          } else {
+            return false;
+          }
+        } else {
+          throw new Error('Task Not Found');
+        }
+      } else {
+        throw new Error('This task is not for this teacher');
+      }
+    } else {
+      throw new Error('Teacher Not Found');
+    }
+  }
+
+  async moveTaskToCompleted(
+    moveToStatusInput: SwitchStatusInput,
+  ): Promise<boolean> {
+    const { teacher_username, task_name } = moveToStatusInput;
+    const personalTask = await this.taskService.getPersonalTaskByName(
+      task_name,
+    );
+    const teacher = await this.teachersRepository.findOne({
+      where: { username: teacher_username },
+    });
+    if (teacher) {
+      if (teacher.assigned_tasks.includes(task_name)) {
+        if (personalTask) {
+          const indexintodo = teacher.personalTasks.todo.indexOf(
+            personalTask.task_name,
+          );
+          const indexinexecuting = teacher.personalTasks.executing.indexOf(
+            personalTask.task_name,
+          );
+          if (indexintodo !== -1) {
+            teacher.personalTasks.todo.splice(indexintodo, 1);
+            await this.teachersRepository.update(teacher._id, {
+              personalTasks: {
+                todo: teacher.personalTasks.todo,
+                executing: [...teacher.personalTasks.executing],
+                completed: [
+                  ...teacher.personalTasks.completed,
+                  personalTask.task_name,
+                ],
+                review: [...teacher.personalTasks.review],
+                finished: [...teacher.personalTasks.finished],
+              },
+            });
+            return true;
+          } else if (indexinexecuting !== -1) {
+            teacher.personalTasks.executing.splice(indexinexecuting, 1);
+            await this.teachersRepository.update(teacher._id, {
+              personalTasks: {
+                todo: [...teacher.personalTasks.todo],
+                executing: teacher.personalTasks.executing,
+                completed: [
+                  ...teacher.personalTasks.completed,
+                  personalTask.task_name,
+                ],
+                review: [...teacher.personalTasks.review],
+                finished: [...teacher.personalTasks.finished],
+              },
+            });
+            return true;
+          } else {
+            return false;
+          }
+        } else {
+          throw new Error('Task Not Found');
+        }
+      } else {
+        throw new Error('This task is not for this teacher');
+      }
+    } else {
+      throw new Error('Teacher Not Found');
+    }
+  }
+
+  async moveTaskToTodo(moveToStatusInput: SwitchStatusInput): Promise<boolean> {
+    const { teacher_username, task_name } = moveToStatusInput;
+    const personalTask = await this.taskService.getPersonalTaskByName(
+      task_name,
+    );
+    const teacher = await this.teachersRepository.findOne({
+      where: { username: teacher_username },
+    });
+    if (teacher) {
+      if (teacher.assigned_tasks.includes(task_name)) {
+        if (personalTask) {
+          const indexincompleted = teacher.personalTasks.completed.indexOf(
+            personalTask.task_name,
+          );
+          const indexinexecuting = teacher.personalTasks.executing.indexOf(
+            personalTask.task_name,
+          );
+          if (indexincompleted !== -1) {
+            teacher.personalTasks.completed.splice(indexincompleted, 1);
+            await this.teachersRepository.update(teacher._id, {
+              personalTasks: {
+                todo: [...teacher.personalTasks.todo, personalTask.task_name],
+                executing: [...teacher.personalTasks.executing],
+                completed: teacher.personalTasks.completed,
+                review: [...teacher.personalTasks.review],
+                finished: [...teacher.personalTasks.finished],
+              },
+            });
+            return true;
+          } else if (indexinexecuting !== -1) {
+            teacher.personalTasks.executing.splice(indexinexecuting, 1);
+            await this.teachersRepository.update(teacher._id, {
+              personalTasks: {
+                todo: [...teacher.personalTasks.todo, personalTask.task_name],
+                executing: teacher.personalTasks.executing,
+                completed: [...teacher.personalTasks.completed],
+                review: [...teacher.personalTasks.review],
+                finished: [...teacher.personalTasks.finished],
+              },
+            });
+            return true;
+          } else {
+            return false;
+          }
+        } else {
+          throw new Error('Task Not Found');
+        }
+      } else {
+        throw new Error('This task is not for this teacher');
+      }
+    } else {
+      throw new Error('Teacher Not Found');
+    }
+  }
+
+  async movePersonalTaskToFinished(
+    moveToStatusInput: SwitchStatusInput,
+  ): Promise<boolean> {
+    const { teacher_username, task_name } = moveToStatusInput;
+    const personalTask = await this.taskService.getPersonalTaskByName(
+      task_name,
+    );
+    const teacher = await this.teachersRepository.findOne({
+      where: { username: teacher_username },
+    });
+    if (teacher) {
+      if (teacher.assigned_tasks.includes(task_name)) {
+        if (personalTask) {
+          const indexincompleted = teacher.personalTasks.completed.indexOf(
+            personalTask.task_name,
+          );
+          const indexinexecuting = teacher.personalTasks.executing.indexOf(
+            personalTask.task_name,
+          );
+          const indexintodo = teacher.personalTasks.todo.indexOf(
+            personalTask.task_name,
+          );
+          const indexinreview = teacher.personalTasks.review.indexOf(
+            personalTask.task_name,
+          );
+          if (indexincompleted !== -1) {
+            teacher.personalTasks.completed.splice(indexincompleted, 1);
+            await this.teachersRepository.update(teacher._id, {
+              personalTasks: {
+                todo: [...teacher.personalTasks.todo],
+                executing: [...teacher.personalTasks.executing],
+                completed: teacher.personalTasks.completed,
+                review: [...teacher.personalTasks.review],
+                finished: [
+                  ...teacher.personalTasks.finished,
+                  personalTask.task_name,
+                ],
+              },
+            });
+            return true;
+          } else if (indexinexecuting !== -1) {
+            teacher.personalTasks.executing.splice(indexinexecuting, 1);
+            await this.teachersRepository.update(teacher._id, {
+              personalTasks: {
+                todo: [...teacher.personalTasks.todo],
+                executing: teacher.personalTasks.executing,
+                completed: [...teacher.personalTasks.completed],
+                review: [...teacher.personalTasks.review],
+                finished: [
+                  ...teacher.personalTasks.finished,
+                  personalTask.task_name,
+                ],
+              },
+            });
+            return true;
+          } else if (indexintodo !== -1) {
+            teacher.personalTasks.todo.splice(indexintodo, 1);
+            await this.teachersRepository.update(teacher._id, {
+              personalTasks: {
+                todo: teacher.personalTasks.todo,
+                executing: [...teacher.personalTasks.executing],
+                completed: [...teacher.personalTasks.completed],
+                review: [...teacher.personalTasks.review],
+                finished: [
+                  ...teacher.personalTasks.finished,
+                  personalTask.task_name,
+                ],
+              },
+            });
+            return true;
+          } else if (indexinreview !== -1) {
+            teacher.personalTasks.review.splice(indexinreview, 1);
+            await this.teachersRepository.update(teacher._id, {
+              personalTasks: {
+                todo: [...teacher.personalTasks.todo],
+                executing: [...teacher.personalTasks.executing],
+                completed: [...teacher.personalTasks.completed],
+                review: teacher.personalTasks.review,
+                finished: [
+                  ...teacher.personalTasks.finished,
+                  personalTask.task_name,
+                ],
+              },
+            });
+            return true;
+          } else {
+            return false;
+          }
+        } else {
+          throw new Error('Task Not Found');
+        }
+      } else {
+        throw new Error('This task is not for this teacher');
+      }
+    } else {
+      throw new Error('Student Not Found');
+    }
+  }
+
+  async movePersonalTaskToReview(
+    moveToStatusInput: SwitchStatusInput,
+  ): Promise<boolean> {
+    const { teacher_username, task_name } = moveToStatusInput;
+    const personalTask = await this.taskService.getPersonalTaskByName(
+      task_name,
+    );
+    const teacher = await this.teachersRepository.findOne({
+      where: { username: teacher_username },
+    });
+    if (teacher) {
+      const indexincompleted =
+        teacher.personalTasks.completed.indexOf(task_name);
+      const indexinexecuting =
+        teacher.personalTasks.executing.indexOf(task_name);
+      const indexintodo = teacher.personalTasks.todo.indexOf(task_name);
+      const indexinfinished = teacher.personalTasks.finished.indexOf(task_name);
+      if (teacher.assigned_tasks.includes(task_name)) {
+        if (personalTask) {
+          if (indexincompleted !== -1) {
+            teacher.personalTasks.completed.splice(indexincompleted, 1);
+            await this.teachersRepository.update(teacher._id, {
+              personalTasks: {
+                todo: [...teacher.personalTasks.todo],
+                executing: [...teacher.personalTasks.executing],
+                completed: teacher.personalTasks.completed,
+                review: [
+                  ...teacher.personalTasks.review,
+                  personalTask.task_name,
+                ],
+                finished: [...teacher.personalTasks.finished],
+              },
+            });
+            return true;
+          } else if (indexinexecuting !== -1) {
+            teacher.personalTasks.executing.splice(indexinexecuting, 1);
+            await this.teachersRepository.update(teacher._id, {
+              personalTasks: {
+                todo: [...teacher.personalTasks.todo],
+                executing: teacher.personalTasks.executing,
+                completed: [...teacher.personalTasks.completed],
+                review: [
+                  ...teacher.personalTasks.review,
+                  personalTask.task_name,
+                ],
+                finished: [...teacher.personalTasks.finished],
+              },
+            });
+            return true;
+          } else if (indexintodo !== -1) {
+            teacher.personalTasks.todo.splice(indexintodo, 1);
+            await this.teachersRepository.update(teacher._id, {
+              personalTasks: {
+                todo: teacher.personalTasks.todo,
+                executing: [...teacher.personalTasks.executing],
+                completed: [...teacher.personalTasks.completed],
+                review: [
+                  ...teacher.personalTasks.review,
+                  personalTask.task_name,
+                ],
+                finished: [...teacher.personalTasks.finished],
+              },
+            });
+            return true;
+          } else if (indexinfinished !== -1) {
+            teacher.personalTasks.finished.splice(indexinfinished, 1);
+            await this.teachersRepository.update(teacher._id, {
+              personalTasks: {
+                todo: [...teacher.personalTasks.todo],
+                executing: [...teacher.personalTasks.executing],
+                completed: [...teacher.personalTasks.completed],
+                review: [
+                  ...teacher.personalTasks.review,
+                  personalTask.task_name,
+                ],
+                finished: teacher.personalTasks.finished,
+              },
+            });
+            return true;
+          } else {
+            return false;
+          }
+        } else {
+          throw new Error('Task Not Found');
+        }
+      } else {
+        throw new Error('This task is not for this teacher');
+      }
+    } else {
+      throw new Error('Student Not Found');
+    }
+  }
+
+  async getAllTeacherTodo(username: string) {
+    const teacher = await this.getTeacher(username);
+    if (teacher) {
+      const todos = teacher.personalTasks.todo.map((task) => {
+        return task;
+      });
+      return todos;
+    }
+  }
+
+  async getAllTeacherExecuting(username: string) {
+    const teacher = await this.getTeacher(username);
+    if (teacher) {
+      const executing = teacher.personalTasks.executing.map((task) => {
+        return task;
+      });
+      return executing;
+    }
+  }
+
+  async getAllTeacherCompletedList(username: string) {
+    const teacher = await this.getTeacher(username);
+    if (teacher) {
+      const completed = teacher.personalTasks.completed.map((task) => {
+        return task;
+      });
+      return completed;
+    }
+  }
+
+  async getAllTeacherReviewList(username: string) {
+    const teacher = await this.getTeacher(username);
+    if (teacher) {
+      const review = teacher.personalTasks.review.map((task) => {
+        return task;
+      });
+      return review;
+    }
+  }
+
+  async getAllTeacherFinishedList(username: string) {
+    const teacher = await this.getTeacher(username);
+    if (teacher) {
+      const finished = teacher.personalTasks.finished.map((task) => {
+        return task;
+      });
+      return finished;
+    }
+  }
+
+  async getRecentTeacher(username: string) {
+    const teacher = await this.getTeacher(username);
+    if (teacher) {
+      const recent = teacher.assigned_tasks.map((tasks) => {
+        return tasks;
+      });
+      return recent.reverse().slice(0, 5);
+    }
+  }
+
+  async getCountOfTeacherPersonalTasks(username: string) {
+    const teacher = await this.getTeacher(username);
+    if (teacher) {
+      let num = 0;
+      teacher.personalTasks.todo.map(() => {
+        num++;
+      });
+      const todo = num;
+      num = 0;
+      teacher.personalTasks.executing.map(() => {
+        num++;
+      });
+      const executing = num;
+      num = 0;
+      teacher.personalTasks.completed.map(() => {
+        num++;
+      });
+      const completed = num;
+      num = 0;
+      teacher.personalTasks.review.map(() => {
+        num++;
+      });
+      const review = num;
+      num = 0;
+      teacher.personalTasks.finished.map(() => {
+        num++;
+      });
+      const finished = num;
+      return [todo, executing, completed, review, finished];
+    }
   }
 }

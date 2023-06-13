@@ -26,81 +26,87 @@ export class TasksService {
 
   async createTask(createTasksType: CreateTasksType): Promise<Tasks> {
     const { task_name, semester, subject_code, deadline } = createTasksType;
-    const subject = await this.subjectService.getSubjectById(subject_code);
-    const student_ids = await this.studentService.getStudentsIdsBySem(semester);
-    const usernames = await this.studentService.getStudentUsernamesBySem(
-      semester,
-    );
-    if (subject) {
-      const teacher = await this.teacherService.getTeacherBySub(
-        subject.sub_name,
+    if (task_name !== '' && semester) {
+      const subject = await this.subjectService.getSubjectById(subject_code);
+      const student_ids = await this.studentService.getStudentsIdsBySem(
+        semester,
       );
-      if (teacher) {
-        const task = this.tasksRepository.create({
-          tasks_id: uuid(),
-          task_name,
-          semester,
-          subject_code: subject.sub_code,
-          alloted_students: student_ids || [],
-          teacher: teacher.teacher_name,
-          deadline: deadline || new Date(),
-        });
-        await this.studentService.assignStudentsWithTask(task);
-        const mailTransporter = createTransport({
-          service: 'gmail',
-          host: 'smtp.gmail.com',
-          secure: false,
-          auth: {
-            user: `${process.env.USER}`,
-            pass: `${process.env.PASS}`,
-          },
-        });
-        mailTransporter.sendMail(
-          {
-            from: `${process.env.USER}`,
-            to: Array.isArray(usernames) ? usernames.join(',') : usernames,
-            subject: `New Task Assigned for Subject ${subject.sub_name}`,
-            html: `<html>
+      const usernames = await this.studentService.getStudentUsernamesBySem(
+        semester,
+      );
+      if (subject) {
+        const teacher = await this.teacherService.getTeacherBySub(
+          subject.sub_name,
+        );
+        if (teacher) {
+          const task = this.tasksRepository.create({
+            tasks_id: uuid(),
+            task_name,
+            semester,
+            subject_code: subject.sub_code,
+            alloted_students: student_ids || [],
+            teacher: teacher.teacher_name,
+            deadline: deadline,
+          });
+          await this.studentService.assignStudentsWithTask(task);
+          const mailTransporter = createTransport({
+            service: 'gmail',
+            host: 'smtp.gmail.com',
+            secure: false,
+            auth: {
+              user: `${process.env.USER}`,
+              pass: `${process.env.PASS}`,
+            },
+          });
+          mailTransporter.sendMail(
+            {
+              from: `${process.env.USER}`,
+              to: Array.isArray(usernames) ? usernames.join(',') : usernames,
+              subject: `New Task Assigned for Subject ${subject.sub_name}`,
+              html: `<html>
                   <body>
                     <h1>New Tasks for ${subject.sub_code}</h1>
                     <p>No deadline for now, Tasks is ${task.task_name}</p>
                   </body>
             </html>`,
-          },
-          (err) => {
-            if (err) {
-              console.log(err);
-            } else {
-              console.log('Mails Sent To Students For New Task Created');
-            }
-          },
-        );
-        mailTransporter.sendMail(
-          {
-            from: `${process.env.USER}`,
-            to: `${teacher.username}`,
-            subject: `Created This Task Successfully`,
-            html: `<html>
+            },
+            (err) => {
+              if (err) {
+                console.log(err);
+              } else {
+                console.log('Mails Sent To Students For New Task Created');
+              }
+            },
+          );
+          mailTransporter.sendMail(
+            {
+              from: `${process.env.USER}`,
+              to: `${teacher.username}`,
+              subject: `Created This Task Successfully`,
+              html: `<html>
                   <body>
                     <h1>Created New Task For Students of Sem ${task.semester}</h1>
                     <p>The Email was sent to all the Students, the students are ${task.alloted_students}</p>
                   </body>
             </html>`,
-          },
-          (err) => {
-            if (err) {
-              console.log(err);
-            } else {
-              console.log('Email Sent To Teacher For Creating New Task');
-            }
-          },
-        );
-        return await this.tasksRepository.save(task);
+            },
+            (err) => {
+              if (err) {
+                console.log(err);
+              } else {
+                console.log('Email Sent To Teacher For Creating New Task');
+              }
+            },
+          );
+          return await this.tasksRepository.save(task);
+        } else {
+          throw new Error('Please Assign Task of your subject');
+        }
       } else {
-        throw new Error('Please Assign Task of your subject');
+        throw new Error('Subject of that subject code was not found');
       }
     } else {
-      throw new Error('Subject of that subject code was not found');
+      throw new Error('Task Name And Semester Cannot Be Empty');
     }
   }
 
@@ -140,7 +146,26 @@ export class TasksService {
       await this.studentService.removeTaskFromStudent(
         per_task_to_del.task_name,
       );
-      const result = await this.tasksRepository.delete(per_task_to_del._id);
+      const result = await this.personalTasksRepository.delete(
+        per_task_to_del._id,
+      );
+      return result.affected > 0;
+    } else {
+      return false;
+    }
+  }
+
+  async deleteTaskForTeacher(id: string) {
+    const per_task_to_del = await this.personalTasksRepository.findOne({
+      where: { tasks_id: id },
+    });
+    if (per_task_to_del) {
+      await this.teacherService.removeTaskFromTeacher(
+        per_task_to_del.task_name,
+      );
+      const result = await this.personalTasksRepository.delete(
+        per_task_to_del._id,
+      );
       return result.affected > 0;
     } else {
       return false;
@@ -152,36 +177,39 @@ export class TasksService {
   }
 
   async createTaskForPersonal(createCustomTasksInput: CreateCustomTasksType) {
-    const { task_name, content, username, semester, deadline } =
-      createCustomTasksInput;
-    const teacher = await this.teacherService.getTeacher(username);
-    const student = await this.studentService.getStudent(username);
-    if (teacher) {
-      const user = this.personalTasksRepository.create({
-        tasks_id: uuid(),
-        task_name,
-        content,
-        username,
-        semester: semester || 1,
-        deadline: deadline || new Date(),
-        alloted_user: teacher.teacher_id,
-      });
-      await this.teacherService.assignTeachersWithCustomTask(user);
-      return await this.personalTasksRepository.save(user);
-    } else if (student) {
-      const user = this.personalTasksRepository.create({
-        tasks_id: uuid(),
-        content,
-        task_name,
-        username,
-        semester: semester || 1,
-        deadline: deadline || new Date(),
-        alloted_user: student.stud_id,
-      });
-      await this.studentService.assignStudentsWithCustomTask(user);
-      return await this.personalTasksRepository.save(user);
+    const { task_name, content, username, deadline } = createCustomTasksInput;
+    if (task_name !== '') {
+      const teacher = await this.teacherService.getTeacher(username);
+      const student = await this.studentService.getStudent(username);
+      if (teacher) {
+        const user = this.personalTasksRepository.create({
+          tasks_id: uuid(),
+          task_name,
+          content,
+          username,
+          deadline: deadline,
+          alloted_user: teacher.teacher_id,
+        });
+        const createdTask = await this.personalTasksRepository.save(user);
+        await this.teacherService.assignTeacherWithPersonalTask(createdTask);
+        return createdTask;
+      } else if (student) {
+        const user = this.personalTasksRepository.create({
+          tasks_id: uuid(),
+          content,
+          task_name,
+          username,
+          deadline: deadline,
+          alloted_user: student.stud_id,
+        });
+        const createdTask = await this.personalTasksRepository.save(user);
+        this.studentService.assignStudentWithPersonalTask(createdTask);
+        return createdTask;
+      } else {
+        throw new Error('User Not Found, Please Register As One');
+      }
     } else {
-      throw new Error('User Not Found, Please Register As One');
+      throw new Error('Task Name Cannot Be Empty');
     }
   }
 
@@ -238,5 +266,37 @@ export class TasksService {
         },
       );
     });
+  }
+
+  async getPersonalTaskByName(task_name: string) {
+    const task = await this.personalTasksRepository.findOne({
+      where: { task_name },
+    });
+    if (task) {
+      return task;
+    }
+  }
+
+  async getTaskByName(name: string) {
+    const task = await this.tasksRepository.findOne({
+      where: { task_name: name },
+    });
+    if (task) {
+      return task;
+    }
+  }
+
+  async getTasksByTeacher(username: string) {
+    if (username) {
+      const teacher = await this.teacherService.getTeacher(username);
+      if (teacher) {
+        const tasks = this.tasksRepository.find({
+          where: { teacher: teacher.teacher_name },
+        });
+        return tasks;
+      } else {
+        throw new Error('Teacher Not Found');
+      }
+    }
   }
 }

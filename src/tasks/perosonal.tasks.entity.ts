@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-@Entity('Tasks')
+@Entity('PersonalTasks')
 export class PersonalTasks {
   @ObjectIdColumn()
   _id: string;
@@ -17,7 +17,7 @@ export class PersonalTasks {
   @Column()
   username: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: false })
   task_name: string;
 
   @Column({ nullable: true })
@@ -27,8 +27,5 @@ export class PersonalTasks {
   alloted_user?: string;
 
   @Column({ nullable: true })
-  semester?: number;
-
-  @Column({ nullable: true })
-  deadline?: Date;
+  deadline?: string;
 }

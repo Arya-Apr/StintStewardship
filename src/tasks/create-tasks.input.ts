@@ -12,6 +12,6 @@ export class CreateTasksType {
   @Field()
   subject_code: number;
 
-  @Field(() => Date, { nullable: true })
+  @Field({ nullable: true })
   deadline?: Date;
 }

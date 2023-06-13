@@ -59,4 +59,7 @@ export class Students {
 
   @Column({ nullable: true })
   taskwithstatus?: TaskWithStatus;
+
+  @Column({ nullable: true })
+  personalTasks?: TaskWithStatus;
 }

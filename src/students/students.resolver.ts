@@ -73,12 +73,30 @@ export class StudentsResolver {
 
   @Mutation(() => Boolean)
   @UseGuards(JwtAuthGuard, RolesGuard)
+  async movePersonalTaskToFinished(
+    @Args('moveToFinished')
+    moveToStatusInput: MoveToStatusInput,
+  ): Promise<boolean> {
+    return this.studentsService.movePersonalTaskToFinished(moveToStatusInput);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Teacher)
   async moveTaskToReview(
     @Args('moveToReview')
     moveToStatusInput: MoveToStatusInput,
   ): Promise<boolean> {
     return this.studentsService.moveTaskToReview(moveToStatusInput);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async movePersonalTaskToReview(
+    @Args('moveToReview')
+    moveToStatusInput: MoveToStatusInput,
+  ): Promise<boolean> {
+    return this.studentsService.movePersonalTaskToReview(moveToStatusInput);
   }
 
   @Mutation(() => Boolean)
@@ -117,10 +135,27 @@ export class StudentsResolver {
   @Query(() => [String])
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Student)
+  async getAllPersonalTodoOfStudent(
+    @Args('userName') username: string,
+  ): Promise<string[]> {
+    return this.studentsService.getAllStudentPersonalTodo(username);
+  }
+
+  @Query(() => [String])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Student)
   async getAllCompletedOfStudent(
     @Args('userName') username: string,
   ): Promise<string[]> {
     return this.studentsService.getAllStudentCompletedList(username);
+  }
+  @Query(() => [String])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Student)
+  async getAllPersonalCompletedOfStudent(
+    @Args('userName') username: string,
+  ): Promise<string[]> {
+    return this.studentsService.getAllStudentPersonalCompletedList(username);
   }
 
   @Query(() => [String])
@@ -135,6 +170,15 @@ export class StudentsResolver {
   @Query(() => [String])
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Student)
+  async getAllPersonalExecutingOfStudent(
+    @Args('userName') username: string,
+  ): Promise<string[]> {
+    return this.studentsService.getAllStudentPersonalExecuting(username);
+  }
+
+  @Query(() => [String])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Student)
   async getAllReviewOfStudent(
     @Args('userName') username: string,
   ): Promise<string[]> {
@@ -144,9 +188,54 @@ export class StudentsResolver {
   @Query(() => [String])
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Student)
+  async getAllPersonalReviewOfStudent(
+    @Args('userName') username: string,
+  ): Promise<string[]> {
+    return this.studentsService.getAllStudentPersonalReviewList(username);
+  }
+
+  @Query(() => [String])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Student)
   async getAllFinishedOfStudent(
     @Args('userName') username: string,
   ): Promise<string[]> {
     return this.studentsService.getAllStudentFinishedList(username);
+  }
+
+  @Query(() => [String])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Student)
+  async getAllPersonalFinishedOfStudent(
+    @Args('userName') username: string,
+  ): Promise<string[]> {
+    return this.studentsService.getAllStudentPerosnalFinishedList(username);
+  }
+
+  @Query(() => [Number])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Student)
+  async getCountOfPersonalTasks(@Args('username') username: string) {
+    return this.studentsService.getCountOfPersonalTasks(username);
+  }
+
+  @Query(() => [Number])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Student)
+  async getCountOfSchoolTasks(@Args('username') username: string) {
+    return this.studentsService.getCountOfSchoolTasks(username);
+  }
+
+  @Query(() => [[Number]])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Student)
+  async getAllCount(@Args('username') username: string) {
+    return this.studentsService.getCountOfAllTask(username);
+  }
+  @Query(() => [String])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Student)
+  async getRecent(@Args('username') username: string) {
+    return this.studentsService.getRecentTasks(username);
   }
 }

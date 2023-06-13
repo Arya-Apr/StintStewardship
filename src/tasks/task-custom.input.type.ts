@@ -3,7 +3,7 @@ import { Field, InputType } from '@nestjs/graphql';
 
 @InputType()
 export class CreateCustomTasksType {
-  @Field()
+  @Field({ nullable: false })
   task_name: string;
 
   @Field()
@@ -12,9 +12,6 @@ export class CreateCustomTasksType {
   @Field(() => [String], { nullable: true })
   content?: string[];
 
-  @Field({ nullable: true })
-  semester?: number;
-
-  @Field(() => Date, { nullable: true })
-  deadline?: Date;
+  @Field(() => String, { nullable: true })
+  deadline?: string;
 }
