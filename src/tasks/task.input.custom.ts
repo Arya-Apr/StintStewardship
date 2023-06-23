@@ -19,5 +19,8 @@ export class PersonalTasksType {
   alloted_user?: string;
 
   @Field(() => String, { nullable: true })
+  created_date: string;
+
+  @Field(() => String, { nullable: true })
   deadline?: string;
 }

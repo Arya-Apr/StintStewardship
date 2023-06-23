@@ -13,6 +13,9 @@ export class TasksType {
   semester: number;
 
   @Field()
+  created_date: string;
+
+  @Field()
   subject_code: number;
 
   @Field(() => [String], { nullable: true })
@@ -22,5 +25,5 @@ export class TasksType {
   teacher: string;
 
   @Field({ nullable: true })
-  deadline?: Date;
+  deadline?: string;
 }

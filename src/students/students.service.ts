@@ -14,6 +14,7 @@ import { File } from './file.entity';
 import { FileUploadDto } from './file.upload.dto';
 import { FileInput } from './file.input';
 import { MoveToStatusInput } from './moveToStatus.input';
+import { TeachersService } from 'src/teachers/teachers.service';
 
 @Injectable()
 export class StudentsService {
@@ -22,7 +23,22 @@ export class StudentsService {
     @InjectRepository(File) private fileRepository: Repository<File>,
     @Inject(forwardRef(() => TasksService))
     private taskService: TasksService,
+    @Inject(forwardRef(() => TeachersService))
+    private teacherService: TeachersService,
   ) {}
+
+  async getUsernameById(id: string) {
+    const student = await this.studentRepository.findOne({
+      where: {
+        stud_id: id,
+      },
+    });
+    if (student) {
+      return student.username;
+    } else {
+      return null;
+    }
+  }
 
   async createStudent(
     createStudentInput: CreateStudentInput,
@@ -108,6 +124,7 @@ export class StudentsService {
     const student = await this.studentRepository.findOne({
       where: { username },
     });
+
     return student;
   }
 
@@ -163,9 +180,8 @@ export class StudentsService {
     const students = await this.studentRepository.find({
       where: { tasks: name },
     });
-
+    //getting both personal and school tasks
     const task = await this.taskService.getTaskByName(name);
-    const personalTask = await this.taskService.getPersonalTaskByName(name);
 
     if (task) {
       for (const student of students) {
@@ -244,9 +260,16 @@ export class StudentsService {
         }
       }
     }
+  }
+
+  async removePersonalTaskFromStudents(name: string, username: string) {
+    const personalTask = await this.taskService.getPersonalTaskByNameUsername(
+      name,
+      username,
+    );
     if (personalTask) {
-      const student = await this.getStudent(personalTask.username);
-      const index = student.tasks.indexOf(name);
+      const student = await this.getStudent(username);
+      const index = student.tasks.indexOf(personalTask.task_name);
       const indexintodo = student.personalTasks.todo.indexOf(name);
       const indexinexecuting = student.personalTasks.executing.indexOf(name);
       const indexincompleted = student.personalTasks.completed.indexOf(name);
@@ -326,16 +349,16 @@ export class StudentsService {
     moveToStatusInput: MoveToStatusInput,
   ): Promise<boolean> {
     const { task_name, student_roll } = moveToStatusInput;
-    const task = await this.taskService.searchTaskByName(task_name);
-    const personalTask = await this.taskService.getPersonalTaskByName(
-      task_name,
-    );
     const student = await this.studentRepository.findOne({
       where: { stud_roll: student_roll },
     });
+    const task = await this.taskService.searchTaskByName(task_name);
     if (student) {
       if (student.tasks.includes(task_name)) {
         if (task) {
+          const teacher = await this.teacherService.getTeacherByName(
+            task.teacher,
+          );
           const indexintodo = student.taskwithstatus.todo.indexOf(task_name);
           const indexincompleted =
             student.taskwithstatus.completed.indexOf(task_name);
@@ -353,6 +376,36 @@ export class StudentsService {
                 finished: [...student.taskwithstatus.finished],
               },
             });
+            const mailTransporter = createTransport({
+              service: 'gmail',
+              host: 'smtp.gmail.com',
+              secure: false,
+              auth: {
+                user: `${process.env.USER}`,
+                pass: `${process.env.PASS}`,
+              },
+            });
+
+            mailTransporter.sendMail(
+              {
+                from: `${process.env.USER}`,
+                to: `${teacher.username}`,
+                subject: 'Student Executing a task',
+                html: `<html>
+                  <body>
+                    <h3>Greetings ${teacher.teacher_name}</h3>
+                    <p>${student.stud_name} with roll number ${student.stud_roll} is executing task ${task.task_name} now</p>
+                  </body>
+                </html>`,
+              },
+              (err) => {
+                if (err) {
+                  console.log(err);
+                } else {
+                  console.log('Mail Sent for switching task');
+                }
+              },
+            );
             return true;
           } else if (indexincompleted !== -1) {
             student.taskwithstatus.completed.splice(indexincompleted, 1);
@@ -368,11 +421,65 @@ export class StudentsService {
                 finished: [...student.taskwithstatus.finished],
               },
             });
+            const mailTransporter = createTransport({
+              service: 'gmail',
+              host: 'smtp.gmail.com',
+              secure: false,
+              auth: {
+                user: `${process.env.USER}`,
+                pass: `${process.env.PASS}`,
+              },
+            });
+
+            mailTransporter.sendMail(
+              {
+                from: `${process.env.USER}`,
+                to: `${teacher.username}`,
+                subject: 'Student Executing a task',
+                html: `<html>
+                  <body>
+                    <h3>Greetings ${teacher.teacher_name}</h3>
+                    <p>${student.stud_name} with roll number ${student.stud_roll} is executing task ${task.task_name} now</p>
+                  </body>
+                </html>`,
+              },
+              (err) => {
+                if (err) {
+                  console.log(err);
+                } else {
+                  console.log('Mail Sent for switching task');
+                }
+              },
+            );
             return true;
           } else {
             return false;
           }
-        } else if (personalTask) {
+        } else {
+          throw new Error('Task Not Found');
+        }
+      } else {
+        throw new Error('This task is not for this student');
+      }
+    } else {
+      throw new Error('Student Not Found');
+    }
+  }
+
+  async movePersonalTaskToExecution(
+    moveToStateInput: MoveToStatusInput,
+  ): Promise<boolean> {
+    const { student_roll, task_name } = moveToStateInput;
+    const student = await this.studentRepository.findOne({
+      where: { stud_roll: student_roll },
+    });
+    if (student) {
+      const personalTask = await this.taskService.getPersonalTaskByNameUsername(
+        task_name,
+        student.username,
+      );
+      if (student.tasks.includes(task_name)) {
+        if (personalTask) {
           const indexintodo = student.personalTasks.todo.indexOf(
             personalTask.task_name,
           );
@@ -413,13 +520,13 @@ export class StudentsService {
             return false;
           }
         } else {
-          throw new Error('Task Not Found');
+          throw new Error(`Personal Task of Task Name: ${task_name} Not Found`);
         }
       } else {
         throw new Error('This task is not for this student');
       }
     } else {
-      throw new Error('Student Not Found');
+      throw new Error(`Student of Roll Number: ${student_roll} Not Found`);
     }
   }
 
@@ -428,6 +535,7 @@ export class StudentsService {
   ): Promise<boolean> {
     const { student_roll, task_name } = moveToStatusInput;
     const task = await this.taskService.searchTaskByName(task_name);
+
     const personalTask = await this.taskService.getPersonalTaskByName(
       task_name,
     );
@@ -437,6 +545,9 @@ export class StudentsService {
     if (student) {
       if (student.tasks.includes(task_name)) {
         if (task) {
+          const teacher = await this.teacherService.getTeacherByName(
+            task.teacher,
+          );
           const indexintodo = student.taskwithstatus.todo.indexOf(task_name);
           const indexinexecuting =
             student.taskwithstatus.executing.indexOf(task_name);
@@ -454,6 +565,39 @@ export class StudentsService {
                 finished: [...student.taskwithstatus.finished],
               },
             });
+            const mailTransporter = createTransport({
+              service: 'gmail',
+              host: 'smtp.gmail.com',
+              secure: false,
+              auth: {
+                user: `${process.env.USER}`,
+                pass: `${process.env.PASS}`,
+              },
+            });
+
+            mailTransporter.sendMail(
+              {
+                from: `${process.env.USER}`,
+                to: `${teacher.username}`,
+                subject: 'Student Completed a task',
+                html: `<html>
+                  <body>
+                    <h3>Greetings ${teacher.teacher_name}</h3>
+                    <p>${student.stud_name} with roll number ${
+                  student.stud_roll
+                } has completed task ${task.task_name}</p>
+                    <p>The Task Was Completed At: ${new Date().toLocaleString()}</p>
+                  </body>
+                </html>`,
+              },
+              (err) => {
+                if (err) {
+                  console.log(err);
+                } else {
+                  console.log('Mail Sent for switching task');
+                }
+              },
+            );
             return true;
           } else if (indexinexecuting !== -1) {
             student.taskwithstatus.executing.splice(indexinexecuting, 1);
@@ -469,11 +613,108 @@ export class StudentsService {
                 finished: [...student.taskwithstatus.finished],
               },
             });
+            const mailTransporter = createTransport({
+              service: 'gmail',
+              host: 'smtp.gmail.com',
+              secure: false,
+              auth: {
+                user: `${process.env.USER}`,
+                pass: `${process.env.PASS}`,
+              },
+            });
+
+            mailTransporter.sendMail(
+              {
+                from: `${process.env.USER}`,
+                to: `${teacher.username}`,
+                subject: 'Student Completed a task',
+                html: `<html>
+                  <body>
+                    <h3>Greetings ${teacher.teacher_name}</h3>
+                    <p>${student.stud_name} with roll number ${
+                  student.stud_roll
+                } has completed task ${task.task_name}</p>
+                    <p>The Task Was Completed At: ${new Date().toLocaleString()}</p>
+                  </body>
+                </html>`,
+              },
+              (err) => {
+                if (err) {
+                  console.log(err);
+                } else {
+                  console.log('Mail Sent for switching task');
+                }
+              },
+            );
             return true;
           } else {
             return false;
           }
         } else if (personalTask) {
+          const indexintodo = student.personalTasks.todo.indexOf(
+            personalTask.task_name,
+          );
+          const indexinexecuting = student.personalTasks.executing.indexOf(
+            personalTask.task_name,
+          );
+          if (indexintodo !== -1) {
+            student.personalTasks.todo.splice(indexintodo, 1);
+            await this.studentRepository.update(student._id, {
+              personalTasks: {
+                todo: student.personalTasks.todo,
+                executing: [...student.personalTasks.executing],
+                completed: [
+                  ...student.personalTasks.completed,
+                  personalTask.task_name,
+                ],
+                review: [...student.personalTasks.review],
+                finished: [...student.personalTasks.finished],
+              },
+            });
+            return true;
+          } else if (indexinexecuting !== -1) {
+            student.personalTasks.executing.splice(indexinexecuting, 1);
+            await this.studentRepository.update(student._id, {
+              personalTasks: {
+                todo: [...student.personalTasks.todo],
+                executing: student.personalTasks.executing,
+                completed: [
+                  ...student.personalTasks.completed,
+                  personalTask.task_name,
+                ],
+                review: [...student.personalTasks.review],
+                finished: [...student.personalTasks.finished],
+              },
+            });
+            return true;
+          } else {
+            return false;
+          }
+        } else {
+          throw new Error('Task Not Found');
+        }
+      } else {
+        throw new Error('This task is not for this student');
+      }
+    } else {
+      throw new Error('Student Not Found');
+    }
+  }
+
+  async movePersonalTaskToCompleted(
+    moveToStatusInput: MoveToStatusInput,
+  ): Promise<boolean> {
+    const { student_roll, task_name } = moveToStatusInput;
+    const student = await this.studentRepository.findOne({
+      where: { stud_roll: student_roll },
+    });
+    if (student) {
+      const personalTask = await this.taskService.getPersonalTaskByNameUsername(
+        task_name,
+        student.username,
+      );
+      if (student.tasks.includes(task_name)) {
+        if (personalTask) {
           const indexintodo = student.personalTasks.todo.indexOf(
             personalTask.task_name,
           );
@@ -568,6 +809,64 @@ export class StudentsService {
             return false;
           }
         } else if (personalTask) {
+          const indexincompleted = student.personalTasks.completed.indexOf(
+            personalTask.task_name,
+          );
+          const indexinexecuting = student.personalTasks.executing.indexOf(
+            personalTask.task_name,
+          );
+          if (indexincompleted !== -1) {
+            student.personalTasks.completed.splice(indexincompleted, 1);
+            await this.studentRepository.update(student._id, {
+              personalTasks: {
+                todo: [...student.personalTasks.todo, personalTask.task_name],
+                executing: [...student.personalTasks.executing],
+                completed: student.personalTasks.completed,
+                review: [...student.personalTasks.review],
+                finished: [...student.personalTasks.finished],
+              },
+            });
+            return true;
+          } else if (indexinexecuting !== -1) {
+            student.personalTasks.executing.splice(indexinexecuting, 1);
+            await this.studentRepository.update(student._id, {
+              personalTasks: {
+                todo: [...student.personalTasks.todo, personalTask.task_name],
+                executing: student.personalTasks.executing,
+                completed: [...student.personalTasks.completed],
+                review: [...student.personalTasks.review],
+                finished: [...student.personalTasks.finished],
+              },
+            });
+            return true;
+          } else {
+            return false;
+          }
+        } else {
+          throw new Error('Task Not Found');
+        }
+      } else {
+        throw new Error('This task is not for this student');
+      }
+    } else {
+      throw new Error('Student Not Found');
+    }
+  }
+
+  async movePersonalTaskToTodo(
+    moveToStatusInput: MoveToStatusInput,
+  ): Promise<boolean> {
+    const { student_roll, task_name } = moveToStatusInput;
+    const student = await this.studentRepository.findOne({
+      where: { stud_roll: student_roll },
+    });
+    if (student) {
+      const personalTask = await this.taskService.getPersonalTaskByNameUsername(
+        task_name,
+        student.username,
+      );
+      if (student.tasks.includes(task_name)) {
+        if (personalTask) {
           const indexincompleted = student.personalTasks.completed.indexOf(
             personalTask.task_name,
           );
@@ -1027,21 +1326,84 @@ export class StudentsService {
 
   async uploadFile(filename: string, fileUploadDto: FileUploadDto) {
     const { stud_Id, taskName } = fileUploadDto;
-    const task = await this.taskService.searchTaskByName(taskName);
-    if (task) {
-      const student = await this.getStudentById(stud_Id);
+    const task = await this.taskService.searchT(taskName, stud_Id);
+    const personalTask = await this.taskService.searchPT(taskName, stud_Id);
+    if (task.length) {
+      const student = await this.studentRepository.findOne({
+        where: { username: stud_Id },
+      });
       if (student) {
-        const file = await this.fileRepository.create({
+        const file = this.fileRepository.create({
           fileName: filename,
           stud_id: stud_Id,
           file_id: uuid(),
-          task_Name: task.task_name,
+          task_Name: taskName,
         });
         return this.fileRepository.save(file);
       }
       throw new Error('Student was not found please check your Id');
+    } else if (personalTask.length) {
+      const student = await this.studentRepository.findOne({
+        where: { username: stud_Id },
+      });
+      const teacher = await this.teacherService.getTeacher(stud_Id);
+
+      if (student) {
+        const file = this.fileRepository.create({
+          fileName: filename,
+          stud_id: stud_Id,
+          file_id: uuid(),
+          task_Name: taskName,
+        });
+        return this.fileRepository.save(file);
+      } else if (teacher) {
+        const file = this.fileRepository.create({
+          fileName: filename,
+          stud_id: stud_Id,
+          file_id: uuid(),
+          task_Name: taskName,
+        });
+        return this.fileRepository.save(file);
+      }
+      throw new Error('User was not found please check your Id');
+    } else {
+      throw new Error(`Task ${taskName} Was Not Found!`);
     }
-    throw new Error('No Such Task Found');
+  }
+
+  async deleteFileUpload(username: string, task_name: string) {
+    const student = await this.getStudent(username);
+    const teacher = await this.teacherService.getTeacher(username);
+    if (teacher && teacher.assigned_tasks.includes(task_name)) {
+      const upload = await this.fileRepository.findOne({
+        where: { stud_id: teacher.username },
+      });
+      if (upload) {
+        const result = await this.fileRepository.delete(upload._id);
+        return result.affected > 0;
+      }
+    }
+    if (student && student.tasks.includes(task_name)) {
+      const upload = await this.fileRepository.find({
+        where: { stud_id: student.username },
+      });
+      if (upload) {
+        upload.map(async (file) => {
+          const result = await this.fileRepository.delete(file._id);
+          return result.affected > 0;
+        });
+      }
+    }
+  }
+
+  async deleteUploadedFileByTask(task_name: string) {
+    const task = await this.taskService.getTaskByName(task_name);
+    if (task) {
+      const result = await this.fileRepository.delete({
+        task_Name: task.task_name,
+      });
+      return result.affected > 0;
+    }
   }
 
   async getFile(fileInput: FileInput): Promise<File[]> {
@@ -1054,70 +1416,78 @@ export class StudentsService {
     });
     if (file.length !== 0) {
       return file;
-    } else if (file.length === 0) {
-      throw new Error(
-        'Student Id or the task name was inccorect, please enter correct inputs',
-      );
     }
   }
 
   async getAllStudentTodo(username: string) {
     const student = await this.getStudent(username);
     if (student) {
-      const todos = student.taskwithstatus.todo.map((task) => {
-        return task;
+      const todos = student.taskwithstatus.todo.map(async (task) => {
+        return await this.taskService.searchTaskByName(task);
       });
       return todos;
+    } else {
+      return null;
     }
   }
 
   async getAllStudentPersonalTodo(username: string) {
     const student = await this.getStudent(username);
     if (student) {
-      const todos = student.personalTasks.todo.map((task) => {
-        return task;
+      const todos = student.personalTasks.todo.map(async (task) => {
+        return await this.taskService.searchPersonalTaskByName(task);
       });
       return todos;
+    } else {
+      return null;
     }
   }
 
   async getAllStudentExecuting(username: string) {
     const student = await this.getStudent(username);
     if (student) {
-      const executing = student.taskwithstatus.executing.map((task) => {
-        return task;
+      const executing = student.taskwithstatus.executing.map(async (task) => {
+        return await this.taskService.searchTaskByName(task);
       });
       return executing;
+    } else {
+      return null;
     }
   }
 
   async getAllStudentPersonalExecuting(username: string) {
     const student = await this.getStudent(username);
     if (student) {
-      const executing = student.personalTasks.executing.map((task) => {
-        return task;
+      const executing = student.personalTasks.executing.map(async (task) => {
+        return await this.taskService.searchPersonalTaskByName(task);
       });
       return executing;
+    } else {
+      return null;
     }
   }
 
   async getAllStudentCompletedList(username: string) {
     const student = await this.getStudent(username);
     if (student) {
-      const completed = student.taskwithstatus.completed.map((task) => {
-        return task;
+      const completed = student.taskwithstatus.completed.map(async (task) => {
+        return await this.taskService.searchTaskByName(task);
       });
       return completed;
+    } else {
+      return null;
     }
   }
 
   async getAllStudentPersonalCompletedList(username: string) {
     const student = await this.getStudent(username);
     if (student) {
-      const completed = student.personalTasks.completed.map((task) => {
-        return task;
+      const completed = student.personalTasks.completed.map(async (task) => {
+        return await this.taskService.searchPersonalTaskByName(task);
       });
       return completed;
+    } else {
+      return null;
     }
   }
 
@@ -1134,10 +1504,12 @@ export class StudentsService {
   async getAllStudentPersonalReviewList(username: string) {
     const student = await this.getStudent(username);
     if (student) {
-      const review = student.personalTasks.review.map((task) => {
-        return task;
+      const review = student.personalTasks.review.map(async (task) => {
+        return await this.taskService.searchPersonalTaskByName(task);
       });
       return review;
+    } else {
+      return null;
     }
   }
 
@@ -1154,10 +1526,12 @@ export class StudentsService {
   async getAllStudentPerosnalFinishedList(username: string) {
     const student = await this.getStudent(username);
     if (student) {
-      const finished = student.personalTasks.finished.map((task) => {
-        return task;
+      const finished = student.personalTasks.finished.map(async (task) => {
+        return await this.taskService.searchPersonalTaskByName(task);
       });
       return finished;
+    } else {
+      return null;
     }
   }
 

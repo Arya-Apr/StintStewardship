@@ -45,7 +45,9 @@ export class Teachers {
   @Column()
   teacher_subject: string;
 
-  // @ManyToMany(() => Tasks, (task) => task.task_name, { eager: true })
+  @Column()
+  subject_code: number;
+
   @Column({ nullable: true })
   assigned_tasks?: string[];
 

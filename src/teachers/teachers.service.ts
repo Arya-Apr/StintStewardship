@@ -28,58 +28,68 @@ export class TeachersService {
   async createTeacher(
     createTeacherInput: CreateTeachersInput,
   ): Promise<Teachers> {
-    const { teacher_name, teacher_subject, username, password } =
+    const { teacher_name, teacher_subject, username, password, subject_code } =
       createTeacherInput;
+    const sub_sem = subject_code.toString().charAt(0);
 
-    const teacher = this.teachersRepository.create({
-      teacher_id: uuid(),
-      teacher_name,
-      teacher_subject,
-      password,
-      username,
-      assigned_tasks: [],
-      role: 'teacher',
-      personalTasks: {
-        todo: [],
-        executing: [],
-        completed: [],
-        review: [],
-        finished: [],
-      },
+    const subject = await this.subjectService.createSubject({
+      sub_code: subject_code,
+      sub_name: teacher_subject,
+      sub_of_sem: parseInt(sub_sem),
     });
-    if (teacher) {
-      const mailTransporter = createTransport({
-        service: 'gmail',
-        host: 'smtp.gmail.com',
-        secure: false,
-        auth: {
-          user: `${process.env.USER}`,
-          pass: `${process.env.PASS}`,
+    if (subject) {
+      const teacher = this.teachersRepository.create({
+        teacher_id: uuid(),
+        teacher_name,
+        teacher_subject,
+        subject_code,
+        password,
+        username,
+        assigned_tasks: [],
+        role: 'teacher',
+        personalTasks: {
+          todo: [],
+          executing: [],
+          completed: [],
+          review: [],
+          finished: [],
         },
       });
 
-      mailTransporter.sendMail(
-        {
-          from: `${process.env.USER}`,
-          to: `${teacher.username}`,
-          subject: 'New Teacher Created',
-          html: `<html>
+      if (teacher) {
+        const mailTransporter = createTransport({
+          service: 'gmail',
+          host: 'smtp.gmail.com',
+          secure: false,
+          auth: {
+            user: `${process.env.USER}`,
+            pass: `${process.env.PASS}`,
+          },
+        });
+
+        mailTransporter.sendMail(
+          {
+            from: `${process.env.USER}`,
+            to: `${teacher.username}`,
+            subject: 'New Teacher Created',
+            html: `<html>
               <body>
                 <h1>New Teacher Created</h1>
                 <p>Greetings! ${teacher.teacher_name}</p>
               </body>
             </html>`,
-        },
-        (err) => {
-          if (err) {
-            console.log(err);
-          } else {
-            console.log('Email Sent To New Teacher');
-          }
-        },
-      );
+          },
+          (err) => {
+            if (err) {
+              console.log(err);
+            } else {
+              console.log('Email Sent To New Teacher');
+            }
+          },
+        );
+      }
+      return this.teachersRepository.save(teacher);
     }
-    return this.teachersRepository.save(teacher);
   }
 
   async getTeachers(): Promise<Teachers[]> {
@@ -90,6 +100,15 @@ export class TeachersService {
     const teacher = await this.teachersRepository.findOne({
       where: {
         username,
+      },
+    });
+    return teacher;
+  }
+
+  async getTeacherByName(name: string): Promise<Teachers> {
+    const teacher = await this.teachersRepository.findOne({
+      where: {
+        teacher_name: name,
       },
     });
     return teacher;
@@ -163,12 +182,12 @@ export class TeachersService {
     }
   }
 
-  async removeTaskFromTeacher(task_name: string) {
+  async removeTaskFromTeacher(task_name: string, username: string) {
     const personalTask = await this.taskService.getPersonalTaskByName(
       task_name,
     );
     if (personalTask) {
-      const teacher = await this.getTeacher(personalTask.username);
+      const teacher = await this.getTeacher(username);
       const index = teacher.assigned_tasks.indexOf(personalTask.task_name);
       const indexintodo = teacher.personalTasks.todo.indexOf(
         personalTask.task_name,
@@ -631,50 +650,60 @@ export class TeachersService {
   async getAllTeacherTodo(username: string) {
     const teacher = await this.getTeacher(username);
     if (teacher) {
-      const todos = teacher.personalTasks.todo.map((task) => {
-        return task;
+      const todo = teacher.personalTasks.todo.map(async (task) => {
+        return await this.taskService.searchPersonalTaskByName(task);
       });
-      return todos;
+      return todo;
+    } else {
+      return null;
     }
   }
 
   async getAllTeacherExecuting(username: string) {
     const teacher = await this.getTeacher(username);
     if (teacher) {
-      const executing = teacher.personalTasks.executing.map((task) => {
-        return task;
+      const todo = teacher.personalTasks.executing.map(async (task) => {
+        return await this.taskService.searchPersonalTaskByName(task);
       });
-      return executing;
+      return todo;
+    } else {
+      return null;
     }
   }
 
   async getAllTeacherCompletedList(username: string) {
     const teacher = await this.getTeacher(username);
     if (teacher) {
-      const completed = teacher.personalTasks.completed.map((task) => {
-        return task;
+      const todo = teacher.personalTasks.completed.map(async (task) => {
+        return await this.taskService.searchPersonalTaskByName(task);
       });
-      return completed;
+      return todo;
+    } else {
+      return null;
     }
   }
 
   async getAllTeacherReviewList(username: string) {
     const teacher = await this.getTeacher(username);
     if (teacher) {
-      const review = teacher.personalTasks.review.map((task) => {
-        return task;
+      const todo = teacher.personalTasks.review.map(async (task) => {
+        return await this.taskService.searchPersonalTaskByName(task);
       });
-      return review;
+      return todo;
+    } else {
+      return null;
     }
   }
 
   async getAllTeacherFinishedList(username: string) {
     const teacher = await this.getTeacher(username);
     if (teacher) {
-      const finished = teacher.personalTasks.finished.map((task) => {
-        return task;
+      const todo = teacher.personalTasks.finished.map(async (task) => {
+        return await this.taskService.searchPersonalTaskByName(task);
       });
-      return finished;
+      return todo;
+    } else {
+      return null;
     }
   }
 

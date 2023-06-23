@@ -41,8 +41,20 @@ export class TasksResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Mutation(() => Boolean)
-  async deleteTaskForTeacher(@Args('id') id: string) {
-    return this.tasksService.deleteTaskForTeacher(id);
+  async deletePersonalTaskForStudent(
+    @Args('name') name: string,
+    @Args('username') username: string,
+  ) {
+    return this.tasksService.deletePersonalTaskForStud(name, username);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Mutation(() => Boolean)
+  async deletePersonalTaskForTeacher(
+    @Args('name') name: string,
+    @Args('username') username: string,
+  ) {
+    return this.tasksService.deletePersonalTaskForTeacher(name, username);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -58,6 +70,24 @@ export class TasksResolver {
   @Query(() => [TasksType])
   async getTasksByTeacher(@Args('getTasks') username: string) {
     return this.tasksService.getTasksByTeacher(username);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Query(() => [TasksType])
+  async searchTasks(
+    @Args('taskName') task_name: string,
+    @Args('username') username: string,
+  ) {
+    return this.tasksService.searchT(task_name, username);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Query(() => [PersonalTasksType])
+  async searchPersonalTasks(
+    @Args('taskName') task_name: string,
+    @Args('username') username: string,
+  ) {
+    return this.tasksService.searchPT(task_name, username);
   }
 
   @Query(() => [Boolean])

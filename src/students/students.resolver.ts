@@ -14,6 +14,8 @@ import { FileInput } from './file.input';
 import { File } from './file.entity';
 import { MoveToStatusInput } from './moveToStatus.input';
 import { Students } from './students.entity';
+import { TasksType } from 'src/tasks/tasks.type';
+import { PersonalTasksType } from 'src/tasks/task.input.custom';
 
 @Resolver(() => StudentsType)
 export class StudentsResolver {
@@ -54,11 +56,31 @@ export class StudentsResolver {
   @Mutation(() => Boolean)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Student)
+  async movePersonalTaskToExecuting(
+    @Args('movePersonalToExecution')
+    moveToStatusInput: MoveToStatusInput,
+  ): Promise<boolean> {
+    return this.studentsService.movePersonalTaskToExecution(moveToStatusInput);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Student)
   async moveTaskToCompleted(
     @Args('moveToCompleted')
     moveToStatusInput: MoveToStatusInput,
   ): Promise<boolean> {
     return this.studentsService.moveTaskToCompleted(moveToStatusInput);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Student)
+  async movePersonalTaskToCompleted(
+    @Args('movePersonalToCompleted')
+    moveToStatusInput: MoveToStatusInput,
+  ): Promise<boolean> {
+    return this.studentsService.movePersonalTaskToCompleted(moveToStatusInput);
   }
 
   @Mutation(() => Boolean)
@@ -109,6 +131,16 @@ export class StudentsResolver {
     return this.studentsService.moveTaskToTodo(moveToStatusInput);
   }
 
+  @Mutation(() => Boolean)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Student)
+  async movePersonalTaskToTodo(
+    @Args('movePersonalToTodo')
+    moveToStatusInput: MoveToStatusInput,
+  ): Promise<boolean> {
+    return this.studentsService.movePersonalTaskToTodo(moveToStatusInput);
+  }
+
   @Query(() => [FileType])
   async getFile(@Args('Cred') fileInput: FileInput): Promise<File[]> {
     return this.studentsService.getFile(fileInput);
@@ -123,56 +155,45 @@ export class StudentsResolver {
     return this.studentsService.getStudent(username);
   }
 
-  @Query(() => [String])
+  @Query(() => [TasksType])
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Student)
-  async getAllTodoOfStudent(
-    @Args('userName') username: string,
-  ): Promise<string[]> {
+  async getAllTodoOfStudent(@Args('userName') username: string) {
     return this.studentsService.getAllStudentTodo(username);
   }
 
-  @Query(() => [String])
+  @Query(() => [PersonalTasksType])
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Student)
-  async getAllPersonalTodoOfStudent(
-    @Args('userName') username: string,
-  ): Promise<string[]> {
+  async getAllPersonalTodoOfStudent(@Args('userName') username: string) {
     return this.studentsService.getAllStudentPersonalTodo(username);
   }
 
-  @Query(() => [String])
+  @Query(() => [TasksType])
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Student)
-  async getAllCompletedOfStudent(
-    @Args('userName') username: string,
-  ): Promise<string[]> {
+  async getAllCompletedOfStudent(@Args('userName') username: string) {
     return this.studentsService.getAllStudentCompletedList(username);
   }
-  @Query(() => [String])
+
+  @Query(() => [PersonalTasksType])
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Student)
-  async getAllPersonalCompletedOfStudent(
-    @Args('userName') username: string,
-  ): Promise<string[]> {
+  async getAllPersonalCompletedOfStudent(@Args('userName') username: string) {
     return this.studentsService.getAllStudentPersonalCompletedList(username);
   }
 
-  @Query(() => [String])
+  @Query(() => [TasksType])
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Student)
-  async getAllExecutingOfStudent(
-    @Args('userName') username: string,
-  ): Promise<string[]> {
+  async getAllExecutingOfStudent(@Args('userName') username: string) {
     return this.studentsService.getAllStudentExecuting(username);
   }
 
-  @Query(() => [String])
+  @Query(() => [PersonalTasksType])
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Student)
-  async getAllPersonalExecutingOfStudent(
-    @Args('userName') username: string,
-  ): Promise<string[]> {
+  async getAllPersonalExecutingOfStudent(@Args('userName') username: string) {
     return this.studentsService.getAllStudentPersonalExecuting(username);
   }
 
@@ -185,12 +206,10 @@ export class StudentsResolver {
     return this.studentsService.getAllStudentReviewList(username);
   }
 
-  @Query(() => [String])
+  @Query(() => [PersonalTasksType])
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Student)
-  async getAllPersonalReviewOfStudent(
-    @Args('userName') username: string,
-  ): Promise<string[]> {
+  async getAllPersonalReviewOfStudent(@Args('userName') username: string) {
     return this.studentsService.getAllStudentPersonalReviewList(username);
   }
 
@@ -203,12 +222,10 @@ export class StudentsResolver {
     return this.studentsService.getAllStudentFinishedList(username);
   }
 
-  @Query(() => [String])
+  @Query(() => [PersonalTasksType])
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Student)
-  async getAllPersonalFinishedOfStudent(
-    @Args('userName') username: string,
-  ): Promise<string[]> {
+  async getAllPersonalFinishedOfStudent(@Args('userName') username: string) {
     return this.studentsService.getAllStudentPerosnalFinishedList(username);
   }
 

@@ -13,5 +13,5 @@ export class CreateTasksType {
   subject_code: number;
 
   @Field({ nullable: true })
-  deadline?: Date;
+  deadline?: string;
 }

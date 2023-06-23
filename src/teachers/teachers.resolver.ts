@@ -10,6 +10,7 @@ import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/auth/role.enum';
 import { BroadcastInput } from './broadcast-student.input';
 import { SwitchStatusInput } from './switchStatus.input';
+import { PersonalTasksType } from 'src/tasks/task.input.custom';
 
 @Resolver(() => TeachersType)
 export class TeachersResolver {
@@ -91,44 +92,34 @@ export class TeachersResolver {
     return this.teachersService.getTeacher(username);
   }
 
-  @Query(() => [String])
+  @Query(() => [PersonalTasksType])
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Teacher)
-  async getAllFinishedOfTeacher(
-    @Args('userName') username: string,
-  ): Promise<string[]> {
+  async getAllFinishedOfTeacher(@Args('userName') username: string) {
     return this.teachersService.getAllTeacherFinishedList(username);
   }
-  @Query(() => [String])
+  @Query(() => [PersonalTasksType])
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Teacher)
-  async getAllReviewOfTeacher(
-    @Args('userName') username: string,
-  ): Promise<string[]> {
+  async getAllReviewOfTeacher(@Args('userName') username: string) {
     return this.teachersService.getAllTeacherReviewList(username);
   }
-  @Query(() => [String])
+  @Query(() => [PersonalTasksType])
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Teacher)
-  async getAllCompletedOfTeacher(
-    @Args('userName') username: string,
-  ): Promise<string[]> {
+  async getAllCompletedOfTeacher(@Args('userName') username: string) {
     return this.teachersService.getAllTeacherCompletedList(username);
   }
-  @Query(() => [String])
+  @Query(() => [PersonalTasksType])
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Teacher)
-  async getAllExecutingOfTeacher(
-    @Args('userName') username: string,
-  ): Promise<string[]> {
+  async getAllExecutingOfTeacher(@Args('userName') username: string) {
     return this.teachersService.getAllTeacherExecuting(username);
   }
-  @Query(() => [String])
+  @Query(() => [PersonalTasksType])
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Teacher)
-  async getAllTodoOfTeacher(
-    @Args('userName') username: string,
-  ): Promise<string[]> {
+  async getAllTodoOfTeacher(@Args('userName') username: string) {
     return this.teachersService.getAllTeacherTodo(username);
   }
   @Query(() => [String])

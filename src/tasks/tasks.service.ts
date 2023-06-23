@@ -2,7 +2,7 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Tasks } from './tasks.entity';
-import { Between, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateTasksType } from './create-tasks.input';
 import { v4 as uuid } from 'uuid';
 import { SubjectService } from 'src/subject/subject.service';
@@ -28,9 +28,6 @@ export class TasksService {
     const { task_name, semester, subject_code, deadline } = createTasksType;
     if (task_name !== '' && semester) {
       const subject = await this.subjectService.getSubjectById(subject_code);
-      const student_ids = await this.studentService.getStudentsIdsBySem(
-        semester,
-      );
       const usernames = await this.studentService.getStudentUsernamesBySem(
         semester,
       );
@@ -44,8 +41,9 @@ export class TasksService {
             task_name,
             semester,
             subject_code: subject.sub_code,
-            alloted_students: student_ids || [],
+            alloted_students: usernames || [],
             teacher: teacher.teacher_name,
+            created_date: new Date().toLocaleString(),
             deadline: deadline,
           });
           await this.studentService.assignStudentsWithTask(task);
@@ -65,8 +63,8 @@ export class TasksService {
               subject: `New Task Assigned for Subject ${subject.sub_name}`,
               html: `<html>
                   <body>
-                    <h1>New Tasks for ${subject.sub_code}</h1>
-                    <p>No deadline for now, Tasks is ${task.task_name}</p>
+                    <h1>New Tasks of ${subject.sub_code} created on ${task.created_date}</h1>
+                    <p>Tasks is ${task.task_name}, Deadline:- ${task.deadline}</p>
                   </body>
             </html>`,
             },
@@ -135,45 +133,91 @@ export class TasksService {
     const task_to_delete = await this.tasksRepository.findOne({
       where: { tasks_id: id },
     });
-    const per_task_to_del = await this.personalTasksRepository.findOne({
-      where: { tasks_id: id },
-    });
     if (task_to_delete) {
+      await this.studentService.deleteUploadedFileByTask(
+        task_to_delete.task_name,
+      );
       await this.studentService.removeTaskFromStudent(task_to_delete.task_name);
       const result = await this.tasksRepository.delete(task_to_delete._id);
-      return result.affected > 0;
-    } else if (per_task_to_del) {
-      await this.studentService.removeTaskFromStudent(
-        per_task_to_del.task_name,
-      );
-      const result = await this.personalTasksRepository.delete(
-        per_task_to_del._id,
-      );
       return result.affected > 0;
     } else {
       return false;
     }
   }
 
-  async deleteTaskForTeacher(id: string) {
-    const per_task_to_del = await this.personalTasksRepository.findOne({
-      where: { tasks_id: id },
+  async deletePersonalTaskForStud(name: string, username: string) {
+    const per_task = await this.personalTasksRepository.findOne({
+      where: { task_name: name, username },
     });
-    if (per_task_to_del) {
-      await this.teacherService.removeTaskFromTeacher(
-        per_task_to_del.task_name,
+    if (per_task) {
+      this.studentService.deleteFileUpload(
+        per_task.username,
+        per_task.task_name,
       );
-      const result = await this.personalTasksRepository.delete(
-        per_task_to_del._id,
+      //check something for delete task!
+      await this.studentService.removePersonalTaskFromStudents(
+        per_task.task_name,
+        per_task.username,
       );
+      const result = await this.personalTasksRepository.delete(per_task._id);
       return result.affected > 0;
     } else {
-      return false;
+      throw new Error('Student Task Not Found');
+    }
+  }
+
+  async deletePersonalTaskForTeacher(name: string, username: string) {
+    const per_task = await this.personalTasksRepository.findOne({
+      where: { task_name: name, username },
+    });
+    if (per_task) {
+      await this.studentService.deleteFileUpload(
+        per_task.username,
+        per_task.task_name,
+      );
+      await this.teacherService.removeTaskFromTeacher(
+        per_task.task_name,
+        per_task.username,
+      );
+      const result = await this.personalTasksRepository.delete(per_task._id);
+      return result.affected > 0;
+    } else {
+      throw new Error('Teacher Task Not Found');
     }
   }
 
   async searchTaskByName(task_name: string): Promise<Tasks> {
-    return await this.tasksRepository.findOne({ where: { task_name } });
+    const task = await this.tasksRepository.findOne({ where: { task_name } });
+    if (task) {
+      return task;
+    }
+  }
+
+  async searchT(task_name: string, username: string) {
+    const task = await this.tasksRepository.find({
+      where: { task_name, alloted_students: username },
+    });
+    if (task) {
+      return task;
+    }
+  }
+
+  async searchPT(task_name: string, username: string) {
+    const personalTask = await this.personalTasksRepository.find({
+      where: { task_name, alloted_user: username },
+    });
+    if (personalTask) {
+      return personalTask;
+    }
+  }
+
+  async searchPersonalTaskByName(task_name: string) {
+    const personalTask = await this.personalTasksRepository.findOne({
+      where: { task_name },
+    });
+    if (personalTask) {
+      return personalTask;
+    }
   }
 
   async createTaskForPersonal(createCustomTasksInput: CreateCustomTasksType) {
@@ -188,7 +232,8 @@ export class TasksService {
           content,
           username,
           deadline: deadline,
-          alloted_user: teacher.teacher_id,
+          alloted_user: teacher.username,
+          created_date: new Date().toLocaleString(),
         });
         const createdTask = await this.personalTasksRepository.save(user);
         await this.teacherService.assignTeacherWithPersonalTask(createdTask);
@@ -200,7 +245,8 @@ export class TasksService {
           task_name,
           username,
           deadline: deadline,
-          alloted_user: student.stud_id,
+          alloted_user: student.username,
+          created_date: new Date().toLocaleString(),
         });
         const createdTask = await this.personalTasksRepository.save(user);
         this.studentService.assignStudentWithPersonalTask(createdTask);
@@ -220,57 +266,114 @@ export class TasksService {
   }
 
   async checkDeadlines() {
-    const now = new Date();
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const day = String(currentDate.getDate()).padStart(2, '0');
+    const now = `${year}-${month}-${day}`;
     const approachingDeadlines = await this.tasksRepository.find({
       where: {
-        deadline: Between(now, new Date(now.getTime() + 24 * 60 * 60 * 1000)),
+        deadline: now,
       },
     });
-
-    if (approachingDeadlines.length === 0) {
-      console.log('no deadlines yet');
-    }
-    const semesters = await this.getSemFromTasks();
-    const usernames = semesters.map((semester) =>
-      this.studentService.getStudentUsernamesBySem(semester),
-    );
-    approachingDeadlines.forEach((task) => {
-      const mailTransporter = createTransport({
-        service: 'gmail',
-        host: 'smtp.gmail.com',
-        secure: false,
-        auth: {
-          user: `${process.env.USER}`,
-          pass: `${process.env.PASS}`,
+    const approachingPersonalDeadlines =
+      await this.personalTasksRepository.find({
+        where: {
+          deadline: now,
         },
       });
-      mailTransporter.sendMail(
-        {
-          from: `${process.env.USER}`,
-          to: Array.isArray(usernames) ? usernames.join(',') : usernames,
-          subject: `Deadline Approaching for Task ${task.task_name}`,
-          html: `<html>
-                <body>
-                  <h1>Make Sure To Complete This Tasks</h1>
-                  <p>Complete It Quickly</p>
-                </body>
-          </html>`,
-        },
-        (err) => {
-          if (err) {
-            console.log(err);
-          } else {
-            console.log('Mails Sent To Students For Deadline');
-            return true;
-          }
-        },
-      );
-    });
+    if (
+      approachingDeadlines.length === 0 ||
+      approachingPersonalDeadlines.length === 0
+    ) {
+      console.log('no deadlines yet');
+    }
+    if (approachingDeadlines) {
+      approachingDeadlines.forEach((task) => {
+        const usernames = task.alloted_students;
+        const mailTransporter = createTransport({
+          service: 'gmail',
+          host: 'smtp.gmail.com',
+          secure: false,
+          auth: {
+            user: `${process.env.USER}`,
+            pass: `${process.env.PASS}`,
+          },
+        });
+        mailTransporter.sendMail(
+          {
+            from: `${process.env.USER}`,
+            to: Array.isArray(usernames) ? usernames.join(',') : usernames,
+            subject: `Deadline Approaching for Task ${task.task_name}`,
+            html: `<html>
+                  <body>
+                    <h1>Make Sure To Complete the Tasks</h1>
+                    <p>The Deadline is ${task.deadline}</p>
+                  </body>
+            </html>`,
+          },
+          (err) => {
+            if (err) {
+              console.log(err);
+            } else {
+              console.log(
+                `Mails Sent To ${task.alloted_students} For Deadline`,
+              );
+              return true;
+            }
+          },
+        );
+      });
+    }
+    if (approachingPersonalDeadlines) {
+      approachingPersonalDeadlines.forEach((task) => {
+        const usernames = task.alloted_user;
+        const mailTransporter = createTransport({
+          service: 'gmail',
+          host: 'smtp.gmail.com',
+          secure: false,
+          auth: {
+            user: `${process.env.USER}`,
+            pass: `${process.env.PASS}`,
+          },
+        });
+        mailTransporter.sendMail(
+          {
+            from: `${process.env.USER}`,
+            to: Array.isArray(usernames) ? usernames.join(',') : usernames,
+            subject: `Deadline Approaching for Task ${task.task_name}`,
+            html: `<html>
+                  <body>
+                    <h1>Reminder To Complete the Tasks</h1>
+                    <p>The Deadline is ${task.deadline}</p>
+                  </body>
+            </html>`,
+          },
+          (err) => {
+            if (err) {
+              console.log(err);
+            } else {
+              console.log(`Mails Sent To ${task.alloted_user} For Deadline`);
+              return true;
+            }
+          },
+        );
+      });
+    }
   }
 
   async getPersonalTaskByName(task_name: string) {
     const task = await this.personalTasksRepository.findOne({
       where: { task_name },
+    });
+    if (task) {
+      return task;
+    }
+  }
+
+  async getPersonalTaskByNameUsername(task_name: string, username: string) {
+    const task = await this.personalTasksRepository.findOne({
+      where: { task_name, username },
     });
     if (task) {
       return task;

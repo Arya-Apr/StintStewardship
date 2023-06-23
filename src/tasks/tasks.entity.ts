@@ -19,6 +19,9 @@ export class Tasks {
   @Column({ unique: true })
   task_name: string;
 
+  @Column({ nullable: true })
+  created_date: string;
+
   @Column()
   semester: number;
 
@@ -37,5 +40,5 @@ export class Tasks {
   teacher: string;
 
   @Column({ nullable: true })
-  deadline?: Date;
+  deadline?: string;
 }

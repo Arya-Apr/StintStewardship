@@ -17,7 +17,7 @@ export class PersonalTasks {
   @Column()
   username: string;
 
-  @Column({ unique: true, nullable: false })
+  @Column({ nullable: false })
   task_name: string;
 
   @Column({ nullable: true })
@@ -25,6 +25,9 @@ export class PersonalTasks {
 
   @Column({ nullable: true })
   alloted_user?: string;
+
+  @Column({ nullable: true })
+  created_date: string;
 
   @Column({ nullable: true })
   deadline?: string;

@@ -12,7 +12,7 @@ export class UserLoginInput {
 
   @Field()
   @IsString()
-  @MinLength(8)
+  @MinLength(7)
   password: string;
 
   @Field({ nullable: true })

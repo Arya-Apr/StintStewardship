@@ -36,31 +36,40 @@ export class AuthService {
     userLoginInput: UserLoginInput,
   ): Promise<{ accessToken: string }> {
     const { username, role, password } = userLoginInput;
-    const student = await this.studentService.getStudent(username);
-    const teacher = await this.teacherService.getTeacher(username);
-    if (student && student.password === password) {
-      const payload: JwtPayload = { username, role };
-      const secret = { secret: process.env.JWT_SECRET };
-      return {
-        accessToken: await this.jwtService.sign(payload, secret),
-      };
-    }
-    if (teacher && teacher.password === password) {
-      const payload: JwtPayload = { username, role };
-      const secret = { secret: process.env.JWT_SECRET };
-      return {
-        accessToken: await this.jwtService.sign(payload, secret),
-      };
-    } else {
+    if (role === 'student') {
+      const student = await this.studentService.getStudent(username);
+      if (student && student.password === password) {
+        const payload: JwtPayload = { username, role };
+        const secret = { secret: process.env.JWT_SECRET };
+        return {
+          accessToken: await this.jwtService.sign(payload, secret),
+        };
+      }
       if (student && student.password !== password) {
         throw new Error('Wrong Credentials');
-      } else if (teacher && teacher.password !== password) {
-        throw new Error('Wrong Credentials');
-      } else if (!student) {
+      }
+      if (!student) {
         throw new Error('Student Not Found');
-      } else {
+      }
+    }
+    if (role === 'teacher') {
+      const teacher = await this.teacherService.getTeacher(username);
+      if (teacher && teacher.password === password) {
+        const payload: JwtPayload = { username, role };
+        const secret = { secret: process.env.JWT_SECRET };
+        return {
+          accessToken: await this.jwtService.sign(payload, secret),
+        };
+      }
+      if (teacher && teacher.password !== password) {
+        throw new Error('Wrong Credentials');
+      }
+      if (!teacher) {
         throw new Error('Teacher Not Found');
       }
+    }
+    if (!role) {
+      throw new Error('Role Not Found');
     }
   }
 }

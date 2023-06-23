@@ -10,6 +10,9 @@ export class CreateTeachersInput {
   teacher_subject: string;
 
   @Field()
+  subject_code: number;
+
+  @Field()
   username: string;
 
   @Field()
