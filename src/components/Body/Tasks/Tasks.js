@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useQuery, gql, useMutation } from '@apollo/client';
 import { useSnackbar } from 'notistack';
@@ -12,14 +12,25 @@ const stud_roll = gql`
   }
 `;
 const todoTasks = gql`
-  query Query($userName: String!) {
-    getAllTodoOfStudent(userName: $userName)
+  query GetAllTodoOfStudent($userName: String!) {
+    getAllTodoOfStudent(userName: $userName) {
+      task_name
+      deadline
+      created_date
+      subject_code
+      tasks_id
+    }
   }
 `;
 
 const executingTasks = gql`
   query Query($userName: String!) {
-    getAllExecutingOfStudent(userName: $userName)
+    getAllExecutingOfStudent(userName: $userName) {
+      tasks_id
+      task_name
+      deadline
+      created_date
+    }
   }
 `;
 
@@ -52,22 +63,38 @@ const moveTaskToTodo = gql`
 `;
 
 const completedTasks = gql`
-  query Query($userName: String!) {
-    getAllCompletedOfStudent(userName: $userName)
+  query GetAllCompletedOfStudent($userName: String!) {
+    getAllCompletedOfStudent(userName: $userName) {
+      tasks_id
+      task_name
+      deadline
+      created_date
+    }
   }
 `;
-
-const getItemStyle = (isDragging, draggableStyle) => ({
+const getFile = gql`
+  query GetFile($cred: FileInput!) {
+    getFile(Cred: $cred) {
+      fileName
+      file_id
+      stud_id
+      task_Name
+    }
+  }
+`;
+const getItemStyle = (isDragging, draggableStyle, expanded) => ({
   userSelect: 'none',
   padding: 16,
+  height: expanded && 'auto',
   margin: '0 0 8px 0',
   background: isDragging ? 'orange' : '#E6FFFD',
+  transition: 'height 0.5s ease',
   ...draggableStyle,
 });
 
 const Tasks = (props) => {
   const { enqueueSnackbar } = useSnackbar();
-
+  const [task, setTask] = useState('');
   const [name, setName] = useState('');
   const todoData = useQuery(todoTasks, {
     variables: { userName: name },
@@ -86,6 +113,14 @@ const Tasks = (props) => {
   });
   const finishedData = useQuery(finishedTasks, {
     variables: { userName: name },
+  });
+  const getF = useQuery(getFile, {
+    variables: {
+      cred: {
+        stud_id: name,
+        task_name: task,
+      },
+    },
   });
   const [taskToExecuting] = useMutation(moveTaskToExecuting);
   const [taskToTodo] = useMutation(moveTaskToTodo);
@@ -113,14 +148,28 @@ const Tasks = (props) => {
     setIsMounted(true);
     if (todoData.data) {
       const tododata1 = todoData.data.getAllTodoOfStudent.map((task) => {
-        return { id: `item-${task}`, content: `${task}` };
+        return {
+          id: `item-${task.tasks_id}`,
+          content: `${task.task_name}`,
+          created_date: task.created_date,
+          subject: task.subject_code,
+          deadline: task.deadline,
+          expanded: false,
+        };
       });
       setItems(tododata1);
     }
     if (completedData.data) {
       const completedData1 = completedData.data.getAllCompletedOfStudent.map(
         (task) => {
-          return { id: `item-${task}`, content: `${task}` };
+          return {
+            id: `item-${task.tasks_id}`,
+            content: `${task.task_name}`,
+            created_date: task.created_date,
+            subject: task.subject_code,
+            deadline: task.deadline,
+            expanded: false,
+          };
         }
       );
       setItems1(completedData1);
@@ -128,14 +177,21 @@ const Tasks = (props) => {
     if (executingData.data) {
       const executingData1 = executingData.data.getAllExecutingOfStudent.map(
         (task) => {
-          return { id: `item-${task}`, content: `${task}` };
+          return {
+            id: `item-${task.tasks_id}`,
+            content: `${task.task_name}`,
+            created_date: task.created_date,
+            subject: task.subject_code,
+            deadline: task.deadline,
+            expanded: false,
+          };
         }
       );
       setItems2(executingData1);
     }
     if (reviewData.data) {
       const reviewData1 = reviewData.data.getAllReviewOfStudent.map((task) => {
-        return { id: `item-${task}`, content: `${task}` };
+        return { id: `item-${task}`, content: `${task}`, expanded: false };
       });
       setItems3(reviewData1);
     }
@@ -204,7 +260,7 @@ const Tasks = (props) => {
   const onDragEnd = (result) => {
     const { destination, source } = result;
     if (!destination) {
-      enqueueSnackbar('Not Found ☠️', {
+      enqueueSnackbar('Cannot Drop There! ☠️', {
         style: { background: 'red' },
       });
       return;
@@ -236,7 +292,7 @@ const Tasks = (props) => {
             if (response) {
               console.log(response.data.moveTaskToExecuting);
               if (response.data.moveTaskToExecuting) {
-                enqueueSnackbar('Switched! ⚙️', {
+                enqueueSnackbar('Switched Task To Executing! ⚙️', {
                   style: { background: 'Purple' },
                 });
               } else {
@@ -262,7 +318,7 @@ const Tasks = (props) => {
             if (response) {
               console.log(response.data.moveTaskToTodo);
               if (response.data.moveTaskToTodo) {
-                enqueueSnackbar('Switched! ⚙️', {
+                enqueueSnackbar('Switched Task To ToDo! ⚙️', {
                   style: { background: 'Purple' },
                 });
               } else {
@@ -288,7 +344,7 @@ const Tasks = (props) => {
             if (response) {
               console.log(response.data.moveTaskToCompleted);
               if (response.data.moveTaskToCompleted) {
-                enqueueSnackbar('Switched! ⚙️', {
+                enqueueSnackbar('Switched Task To Completed! ⚙️', {
                   style: { background: 'Purple' },
                 });
               } else {
@@ -309,6 +365,106 @@ const Tasks = (props) => {
 
   const handle = () => {
     setIsExpanded(false);
+  };
+  const handleClick = (arrayName, itemId) => {
+    switch (arrayName) {
+      case 'array-1':
+        setItems((prevArr) => {
+          const updatedArray = prevArr.map((item) => {
+            if (item.id === itemId) {
+              setTask(item.content);
+              return {
+                ...item,
+                expanded: !item.expanded,
+              };
+            }
+            return item;
+          });
+          return updatedArray;
+        });
+        break;
+      case 'array-2':
+        setItems2((prevArr) => {
+          const updatedArray = prevArr.map((item) => {
+            if (item.id === itemId) {
+              setTask(item.content);
+              return {
+                ...item,
+                expanded: !item.expanded,
+              };
+            }
+            return item;
+          });
+          return updatedArray;
+        });
+        break;
+      case 'array-3':
+        setItems1((prevArr) => {
+          const updatedArray = prevArr.map((item) => {
+            if (item.id === itemId) {
+              setTask(item.content);
+
+              return {
+                ...item,
+                expanded: !item.expanded,
+              };
+            }
+            return item;
+          });
+          return updatedArray;
+        });
+        break;
+      case 'array-4':
+        setItems3((prevArr) => {
+          const updatedArray = prevArr.map((item) => {
+            if (item.id === itemId) {
+              setTask(item.content);
+
+              return {
+                ...item,
+                expanded: !item.expanded,
+              };
+            }
+            return item;
+          });
+          return updatedArray;
+        });
+        break;
+      default:
+        break;
+    }
+  };
+  const fileInputRef = useRef(null);
+
+  const handleButtonClick = (task_name) => {
+    fileInputRef.current.click();
+    fileInputRef.current.addEventListener('change', (event) =>
+      handleFileChange(event, task_name)
+    );
+  };
+  const handleFileChange = async (event, task_name) => {
+    const selectedFile = event.target.files[0];
+    const form = new FormData();
+    form.append('file', selectedFile);
+    form.append('taskName', task_name);
+    form.append('stud_Id', name);
+    try {
+      const response = await fetch('http://localhost:3001/students/upload', {
+        method: 'POST',
+        body: form,
+      });
+      if (response) {
+        enqueueSnackbar(`File ${selectedFile.name} Uploaded Successfully! 📁`, {
+          style: { background: 'green' },
+        });
+        window.location.reload();
+      }
+    } catch (err) {
+      enqueueSnackbar(`${err}`, {
+        style: { background: 'red' },
+      });
+    }
+    console.log(selectedFile, task_name);
   };
   return (
     <div className='body' onClick={handle}>
@@ -350,12 +506,37 @@ const Tasks = (props) => {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
+                            onClick={() => handleClick('array-1', item.id)}
                             style={getItemStyle(
                               snapshot.isDragging,
-                              provided.draggableProps.style
+                              provided.draggableProps.style,
+                              item.expanded
                             )}
                           >
                             {item.content}
+                            {item.expanded && (
+                              <>
+                                <hr
+                                  style={{
+                                    border: 'none',
+                                    height: 5,
+                                    backgroundColor: 'violet',
+                                    borderWidth: 5,
+                                  }}
+                                />
+                                {getF.data && (
+                                  <>
+                                    Uploaded File:
+                                    {getF.data.getFile.map((file) => (
+                                      <p key={file.fileName}>{file.fileName}</p>
+                                    ))}
+                                  </>
+                                )}
+
+                                <p>Deadline : {item.deadline}</p>
+                                <p>Created on : {item.created_date}</p>
+                              </>
+                            )}
                           </div>
                         )}
                       </Draggable>
@@ -395,12 +576,83 @@ const Tasks = (props) => {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
+                            onClick={() => handleClick('array-2', item.id)}
                             style={getItemStyle(
                               snapshot.isDragging,
-                              provided.draggableProps.style
+                              provided.draggableProps.style,
+                              item.expanded
                             )}
                           >
                             {item.content}
+                            {item.expanded ? (
+                              <>
+                                <button
+                                  style={{
+                                    position: 'absolute',
+                                    background: 'transparent',
+                                    border: 0,
+                                    right: 10,
+                                    bottom: 5,
+                                  }}
+                                  onClick={() =>
+                                    handleButtonClick(item.content)
+                                  }
+                                >
+                                  <svg
+                                    width='20'
+                                    height='20'
+                                    viewBox='0 0 20 20'
+                                    fill='none'
+                                    xmlns='http://www.w3.org/2000/svg'
+                                  >
+                                    <g clipPath='url(#clip0_133_2)'>
+                                      <path
+                                        d='M11.6668 1.66667H5.00016C4.0835 1.66667 3.34183 2.41667 3.34183 3.33333L3.3335 16.6667C3.3335 17.5833 4.07516 18.3333 4.99183 18.3333H15.0002C15.9168 18.3333 16.6668 17.5833 16.6668 16.6667V6.66667L11.6668 1.66667ZM15.0002 16.6667H5.00016V3.33333H10.8335V7.5H15.0002V16.6667ZM6.66683 12.5083L7.84183 13.6833L9.16683 12.3667V15.8333H10.8335V12.3667L12.1585 13.6917L13.3335 12.5083L10.0085 9.16667L6.66683 12.5083Z'
+                                        fill='black'
+                                      />
+                                    </g>
+                                    <defs>
+                                      <clipPath id='clip0_133_2'>
+                                        <rect
+                                          width='20'
+                                          height='20'
+                                          fill='white'
+                                        />
+                                      </clipPath>
+                                    </defs>
+                                  </svg>
+                                </button>
+                                <input
+                                  type='file'
+                                  ref={fileInputRef}
+                                  style={{ display: 'none' }}
+                                />
+                              </>
+                            ) : (
+                              ''
+                            )}
+                            {item.expanded && (
+                              <>
+                                <hr
+                                  style={{
+                                    border: 'none',
+                                    height: 5,
+                                    backgroundColor: 'violet',
+                                    borderWidth: 5,
+                                  }}
+                                />
+                                {getF.data && (
+                                  <>
+                                    Uploaded File:
+                                    {getF.data.getFile.map((file) => (
+                                      <p key={file.fileName}>{file.fileName}</p>
+                                    ))}
+                                  </>
+                                )}
+                                <p>Deadline : {item.deadline}</p>
+                                <p>Created on : {item.created_date}</p>
+                              </>
+                            )}
                           </div>
                         )}
                       </Draggable>
@@ -440,12 +692,37 @@ const Tasks = (props) => {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
+                            onClick={() => handleClick('array-3', item.id)}
                             style={getItemStyle(
                               snapshot.isDragging,
-                              provided.draggableProps.style
+                              provided.draggableProps.style,
+                              item.expanded
                             )}
                           >
                             {item.content}
+                            {item.expanded && (
+                              <>
+                                <hr
+                                  style={{
+                                    border: 'none',
+                                    height: 5,
+                                    backgroundColor: 'violet',
+                                    borderWidth: 5,
+                                  }}
+                                />
+                                {getF.data && (
+                                  <>
+                                    Uploaded File:
+                                    {getF.data.getFile.map((file) => (
+                                      <p key={file.fileName}>{file.fileName}</p>
+                                    ))}
+                                  </>
+                                )}
+
+                                <p>Deadline : {item.deadline}</p>
+                                <p>Created on : {item.created_date}</p>
+                              </>
+                            )}
                           </div>
                         )}
                       </Draggable>

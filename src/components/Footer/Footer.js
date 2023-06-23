@@ -42,6 +42,13 @@ const Footer = () => {
       <Link onClick={scrollTop} style={{ textDecoration: 'none' }}>
         <h3 className='footer-logo'>StintStewardship</h3>
       </Link>
+      <div>
+        <h6
+          style={{ color: 'white', position: 'absolute', right: 100, top: 50 }}
+        >
+          Solely Developed By Arya Rana
+        </h6>
+      </div>
     </footer>
   );
 };

@@ -271,21 +271,38 @@ const Home = () => {
           <hr style={{ width: 'auto', height: 3, background: 'black' }} />
           <ul style={{ alignContent: 'end' }}>
             {role === 'student' && (
-              <li>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    nav('/tasks');
-                  }}
-                  style={{
-                    background: 'transparent',
-                    border: 0,
-                    textDecoration: 'underline black',
-                  }}
-                >
-                  Check Your School Tasks!
-                </button>
-              </li>
+              <>
+                <li>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      nav('/tasks');
+                    }}
+                    style={{
+                      background: 'transparent',
+                      border: 0,
+                      textDecoration: 'underline black',
+                    }}
+                  >
+                    Check Your School Tasks!
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      nav('/activities');
+                    }}
+                    style={{
+                      background: 'transparent',
+                      border: 0,
+                      textDecoration: 'underline black',
+                    }}
+                  >
+                    Keep Up Your Activity!
+                  </button>
+                </li>
+              </>
             )}
             <li>
               <button
@@ -300,21 +317,6 @@ const Home = () => {
                 }}
               >
                 Work On Your Tasks!
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  nav('/activities');
-                }}
-                style={{
-                  background: 'transparent',
-                  border: 0,
-                  textDecoration: 'underline black',
-                }}
-              >
-                Keep Up Your Activity!
               </button>
             </li>
           </ul>

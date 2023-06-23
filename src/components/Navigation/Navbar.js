@@ -43,7 +43,7 @@ const Navbar = (props) => {
 
         <h3 className='logo'>StintStewardship</h3>
       </Link>
-      <SearchPanel />
+      {token && <SearchPanel />}
       <div className='nav'>
         {!token ? (
           <>

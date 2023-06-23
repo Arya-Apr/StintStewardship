@@ -69,3 +69,14 @@
   display: grid;
   place-items: center;
 }
+.announce-title {
+  color: #ee9b00;
+  background: #000000;
+  opacity: 90%;
+  position: absolute;
+  left: 600px;
+  top: 15px;
+  padding: 15px;
+  text-decoration: underline grey;
+  border-radius: 10px;
+}

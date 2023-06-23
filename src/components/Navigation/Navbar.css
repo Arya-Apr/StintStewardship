@@ -15,6 +15,29 @@
   left: 1150px;
   top: 35px;
   color: #ffffff;
+
+  @media (max-width: 1320px) {
+    left: 850px;
+  }
+
+  @media (max-width: 1370px) and (min-width: 1320px) {
+    left: 875px;
+  }
+
+  @media (max-width: 1400px) and (min-width: 1370px) {
+    left: 925px;
+  }
+
+  @media (max-width: 1530px) and (min-width: 1400px) {
+    left: 950px;
+  }
+
+  @media (max-width: 1630px) and (min-width: 1530px) {
+    left: 1100px;
+  }
+  @media (min-width: 1630px) {
+    left: 1200px;
+  }
 }
 
 #nav {

@@ -14,6 +14,7 @@ import SignUp from './components/Body/SignUp/SignUp';
 import Footer from './components/Footer/Footer';
 import { useMutation, gql } from '@apollo/client';
 import AddSchoolTask from './components/Body/AddSchoolTask/AddSchoolTask';
+import Announcement from './components/Announcement/Announcement';
 const LOGIN_MUTATION = gql`
   mutation UserLogin($loginUserInput: UserLoginInput!) {
     userLogin(loginUserInput: $loginUserInput) {
@@ -43,13 +44,13 @@ function App() {
       const payload = JSON.parse(atob(payloadbase));
       localStorage.setItem('user-role', payload.role);
       setRole(payload.role);
-      console.log(role);
     }
   }, [role, token]);
   const handleLogout = (e) => {
     e.preventDefault();
     setToken(null);
     localStorage.removeItem('authToken');
+    localStorage.removeItem('user-role');
     enqueueSnackbar(`Logged Out! 💤`, {
       style: { background: 'red' },
     });
@@ -106,11 +107,13 @@ function App() {
         token={token}
       />
 
-      <Menu
-        isExpanded={isExpanded}
-        setIsExpanded={setIsExpanded}
-        onLogout={handleLogout}
-      />
+      {token && (
+        <Menu
+          isExpanded={isExpanded}
+          setIsExpanded={setIsExpanded}
+          onLogout={handleLogout}
+        />
+      )}
 
       <Routes>
         <Route path='/home' element={<Home state={state} />} />
@@ -131,6 +134,7 @@ function App() {
         />
         <Route path='/activities' element={<Activity />} />
         <Route path='/addTask' element={<AddSchoolTask />} />
+        <Route path='/announce' element={<Announcement />} />
         <Route
           path='/login'
           element={

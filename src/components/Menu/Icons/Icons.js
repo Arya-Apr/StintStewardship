@@ -59,11 +59,37 @@ const iconsT = [
         `,
   },
   {
-    id: 3,
+    id: 2,
     name: 'Personal',
     path: '/personal',
     svg: `<svg width="30" height="28" viewBox="0 0 41 37" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M20.2222 22.7778C24.7778 22.7778 29.3333 17.8889 29.3333 11.7778C29.3333 5.66667 26.2963 2 20.2222 2C14.1481 2 11.1111 5.66667 11.1111 11.7778C11.1111 17.8889 15.6667 22.7778 20.2222 22.7778ZM20.2222 22.7778C29.3333 22.7778 38.4444 24 38.4444 35H2C2 24 11.1111 22.7778 20.2222 22.7778Z" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    `,
+  },
+  {
+    id: 3,
+    name: 'Announcement',
+    path: '/announce',
+    svg: `<svg width="70" height="74" viewBox="12 15 90 94" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g clip-path="url(#clip0_164_2)">
+    <path d="M22.125 24.7833L24.8063 27.1667C26.5125 25.65 28.8938 24.7 31.5 24.7C34.1062 24.7 36.4875 25.65 38.1937 27.1667L40.875 24.7833C38.475 22.65 35.1563 21.3333 31.5 21.3333C27.8437 21.3333 24.525 22.65 22.125 24.7833ZM31.5 14.6667C25.8375 14.6667 20.7 16.7167 16.9688 20.0167L19.6125 22.3667C22.65 19.6667 26.8687 18 31.5 18C36.1313 18 40.35 19.6667 43.3875 22.3667L46.0312 20.0167C42.3 16.7167 37.1625 14.6667 31.5 14.6667ZM36.8625 29.6833L26.1375 29.6667C24.9563 29.6667 24 30.5167 24 31.5667V47.75C24 48.8 24.9563 49.65 26.1375 49.65H36.8438C38.025 49.65 38.9812 48.8 38.9812 47.75V31.5667C39 30.5167 38.0437 29.6833 36.8625 29.6833ZM37.125 46.3333H25.875V33H37.125V46.3333Z" fill="black"/>
+    </g>
+    <defs>
+    <filter id="filter0_d_164_2" x="0" y="0" width="70" height="74" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+    <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+    <feOffset dx="4" dy="4"/>
+    <feGaussianBlur stdDeviation="2"/>
+    <feComposite in2="hardAlpha" operator="out"/>
+    <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.34 0"/>
+    <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_164_2"/>
+    <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_164_2" result="shape"/>
+    </filter>
+    <clipPath id="clip0_164_2">
+    <rect width="45" height="40" fill="white" transform="translate(9 13)"/>
+    </clipPath>
+    </defs>
     </svg>
     `,
   },

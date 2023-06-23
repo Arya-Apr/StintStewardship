@@ -36,6 +36,7 @@ const SignUp = () => {
 
   const [name, setName] = useState('');
   const [subject, setSubject] = useState('');
+  const [sub_code, setSubCode] = useState('');
   const [username, setUsername] = useState('');
   const [roll, setRoll] = useState();
   const [semester, setSemester] = useState();
@@ -85,6 +86,7 @@ const SignUp = () => {
             teacher_name: name,
             teacher_subject: subject,
             username,
+            subject_code: +sub_code,
             password,
           },
         },
@@ -95,6 +97,7 @@ const SignUp = () => {
             setUsername('');
             setPassword('');
             setSubject('');
+            setSubCode('');
             nav('/login');
             console.log(response);
             enqueueSnackbar('SignUp Successfull! 🎉', {
@@ -257,6 +260,21 @@ const SignUp = () => {
                     name='subject'
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
+                    required
+                  />
+                </fieldset>
+                <fieldset className='Fieldset'>
+                  <label className='Label' htmlFor='sub_code'>
+                    Subject Code
+                  </label>
+                  <input
+                    className='Input'
+                    id='sub_code'
+                    type='number'
+                    placeholder='Your Subject Code'
+                    name='subject'
+                    value={sub_code}
+                    onChange={(e) => setSubCode(e.target.value)}
                     required
                   />
                 </fieldset>

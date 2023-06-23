@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useQuery, gql, useMutation } from '@apollo/client';
 import { useSnackbar } from 'notistack';
 
 import '../Tasks/Body.css';
 import AddTask from './AddTask/AddTask';
+
 const stud_roll = gql`
   query GetStudentByUsername($getStudentByName: String!) {
     getStudentByUsername(getStudentByName: $getStudentByName) {
@@ -13,61 +14,115 @@ const stud_roll = gql`
   }
 `;
 const todoTasks = gql`
-  query Query($userName: String!) {
-    getAllPersonalTodoOfStudent(userName: $userName)
+  query GetAllPersonalTodoOfStudent($userName: String!) {
+    getAllPersonalTodoOfStudent(userName: $userName) {
+      tasks_id
+      task_name
+      deadline
+      created_date
+    }
   }
 `;
 const todoTeacher = gql`
-  query Query($userName: String!) {
-    getAllTodoOfTeacher(userName: $userName)
+  query GetAllTodoOfTeacher($userName: String!) {
+    getAllTodoOfTeacher(userName: $userName) {
+      tasks_id
+      task_name
+      deadline
+      created_date
+    }
   }
 `;
 const executingTasks = gql`
-  query Query($userName: String!) {
-    getAllPersonalExecutingOfStudent(userName: $userName)
+  query GetAllPersonalExecutingOfStudent($userName: String!) {
+    getAllPersonalExecutingOfStudent(userName: $userName) {
+      tasks_id
+      task_name
+      deadline
+      created_date
+    }
   }
 `;
 const executingTeacher = gql`
-  query Query($userName: String!) {
-    getAllExecutingOfTeacher(userName: $userName)
+  query GetAllExecutingOfTeacher($userName: String!) {
+    getAllExecutingOfTeacher(userName: $userName) {
+      tasks_id
+      task_name
+      deadline
+      created_date
+    }
   }
 `;
 const completedTasks = gql`
-  query Query($userName: String!) {
-    getAllPersonalCompletedOfStudent(userName: $userName)
+  query GetAllPersonalCompletedOfStudent($userName: String!) {
+    getAllPersonalCompletedOfStudent(userName: $userName) {
+      tasks_id
+      task_name
+      deadline
+      created_date
+    }
   }
 `;
 const completedTeacher = gql`
-  query Query($userName: String!) {
-    getAllCompletedOfTeacher(userName: $userName)
+  query GetAllCompletedOfTeacher($userName: String!) {
+    getAllCompletedOfTeacher(userName: $userName) {
+      tasks_id
+      task_name
+      deadline
+      created_date
+    }
   }
 `;
 const reviewTasks = gql`
-  query Query($userName: String!) {
-    getAllPersonalReviewOfStudent(userName: $userName)
+  query GetAllPersonalReviewOfStudent($userName: String!) {
+    getAllPersonalReviewOfStudent(userName: $userName) {
+      tasks_id
+      task_name
+      deadline
+      created_date
+    }
   }
 `;
 const reviewTeacher = gql`
-  query Query($userName: String!) {
-    getAllReviewOfTeacher(userName: $userName)
+  query GetAllReviewOfTeacher($userName: String!) {
+    getAllReviewOfTeacher(userName: $userName) {
+      tasks_id
+      task_name
+      deadline
+      created_date
+    }
   }
 `;
 
 const finishedTasks = gql`
-  query Query($userName: String!) {
-    getAllPersonalFinishedOfStudent(userName: $userName)
+  query GetAllPersonalFinishedOfStudent($userName: String!) {
+    getAllPersonalFinishedOfStudent(userName: $userName) {
+      tasks_id
+      task_name
+      deadline
+      created_date
+    }
   }
 `;
 
 const finishedTeacher = gql`
-  query Query($userName: String!) {
-    getAllFinishedOfTeacher(userName: $userName)
+  query GetAllFinishedOfTeacher($userName: String!) {
+    getAllFinishedOfTeacher(userName: $userName) {
+      tasks_id
+      task_name
+      deadline
+      created_date
+    }
   }
 `;
 
 const moveTaskToExecuting = gql`
-  mutation MoveTaskToExecuting($moveToExecution: MoveToStatusInput!) {
-    moveTaskToExecuting(moveToExecution: $moveToExecution)
+  mutation MovePersonalTaskToExecuting(
+    $movePersonalToExecution: MoveToStatusInput!
+  ) {
+    movePersonalTaskToExecuting(
+      movePersonalToExecution: $movePersonalToExecution
+    )
   }
 `;
 const moveExecutingTeacher = gql`
@@ -76,8 +131,12 @@ const moveExecutingTeacher = gql`
   }
 `;
 const moveTaskToCompleted = gql`
-  mutation MoveTaskToCompleted($moveToCompleted: MoveToStatusInput!) {
-    moveTaskToCompleted(moveToCompleted: $moveToCompleted)
+  mutation MovePersonalTaskToCompleted(
+    $movePersonalToCompleted: MoveToStatusInput!
+  ) {
+    movePersonalTaskToCompleted(
+      movePersonalToCompleted: $movePersonalToCompleted
+    )
   }
 `;
 const moveCompletedTeacher = gql`
@@ -86,8 +145,8 @@ const moveCompletedTeacher = gql`
   }
 `;
 const moveTaskToTodo = gql`
-  mutation MoveTaskToTodo($moveToTodo: MoveToStatusInput!) {
-    moveTaskToTodo(moveToTodo: $moveToTodo)
+  mutation MovePersonalTaskToTodo($movePersonalToTodo: MoveToStatusInput!) {
+    movePersonalTaskToTodo(movePersonalToTodo: $movePersonalToTodo)
   }
 `;
 const moveTodoTeacher = gql`
@@ -117,18 +176,34 @@ const moveFinishedTeacher = gql`
   }
 `;
 
-const getItemStyle = (isDragging, draggableStyle) => ({
-  userSelect: 'none',
-  padding: 16,
-  margin: '0 0 8px 0',
-  background: isDragging ? 'orange' : '#E6FFFD',
-  ...draggableStyle,
-});
+const delPerTaskStud = gql`
+  mutation DeletePersonalTaskForStudent($name: String!, $username: String!) {
+    deletePersonalTaskForStudent(name: $name, username: $username)
+  }
+`;
+
+const delPerTaskT = gql`
+  mutation DeletePersonalTaskForTeacher($name: String!, $username: String!) {
+    deletePersonalTaskForTeacher(name: $name, username: $username)
+  }
+`;
+
+const getFile = gql`
+  query GetFile($cred: FileInput!) {
+    getFile(Cred: $cred) {
+      fileName
+      file_id
+      stud_id
+      task_Name
+    }
+  }
+`;
 
 const PersonalWorkspace = (props) => {
   const { enqueueSnackbar } = useSnackbar();
   const [role, setRole] = useState('');
   const [name, setName] = useState('');
+  const [task, setTask] = useState('');
   const todoData = useQuery(todoTasks, {
     variables: { userName: name },
   });
@@ -146,6 +221,14 @@ const PersonalWorkspace = (props) => {
   const completedT = useQuery(completedTeacher, {
     variables: {
       userName: name,
+    },
+  });
+  const getF = useQuery(getFile, {
+    variables: {
+      cred: {
+        stud_id: name,
+        task_name: task,
+      },
     },
   });
   const executingData = useQuery(executingTasks, {
@@ -169,6 +252,8 @@ const PersonalWorkspace = (props) => {
     variables: { userName: name },
   });
   const [taskToExecuting] = useMutation(moveTaskToExecuting);
+  const [delPerStud] = useMutation(delPerTaskStud);
+  const [delPerT] = useMutation(delPerTaskT);
   const [moveExecutingT] = useMutation(moveExecutingTeacher);
   const [taskToTodo] = useMutation(moveTaskToTodo);
   const [moveTodoT] = useMutation(moveTodoTeacher);
@@ -201,29 +286,58 @@ const PersonalWorkspace = (props) => {
       if (todoData.data) {
         const tododata1 = todoData.data.getAllPersonalTodoOfStudent.map(
           (task) => {
-            return { id: `item-${task}`, content: `${task}` };
+            return {
+              id: `item-${task.tasks_id}`,
+              content: `${task.task_name}`,
+              created_date: task.created_date,
+              subject: task.subject_code,
+              deadline: task.deadline,
+              expanded: false,
+            };
           }
         );
         setItems(tododata1);
       }
+
       if (completedData.data) {
         const completedData1 =
           completedData.data.getAllPersonalCompletedOfStudent.map((task) => {
-            return { id: `item-${task}`, content: `${task}` };
+            return {
+              id: `item-${task.tasks_id}`,
+              content: `${task.task_name}`,
+              created_date: task.created_date,
+              subject: task.subject_code,
+              deadline: task.deadline,
+              expanded: false,
+            };
           });
         setItems1(completedData1);
       }
       if (executingData.data) {
         const executingData1 =
           executingData.data.getAllPersonalExecutingOfStudent.map((task) => {
-            return { id: `item-${task}`, content: `${task}` };
+            return {
+              id: `item-${task.tasks_id}`,
+              content: `${task.task_name}`,
+              created_date: task.created_date,
+              subject: task.subject_code,
+              deadline: task.deadline,
+              expanded: false,
+            };
           });
         setItems2(executingData1);
       }
       if (reviewData.data) {
         const reviewData1 = reviewData.data.getAllPersonalReviewOfStudent.map(
           (task) => {
-            return { id: `item-${task}`, content: `${task}` };
+            return {
+              id: `item-${task.tasks_id}`,
+              content: `${task.task_name}`,
+              created_date: task.created_date,
+              subject: task.subject_code,
+              deadline: task.deadline,
+              expanded: false,
+            };
           }
         );
         setItems3(reviewData1);
@@ -231,7 +345,13 @@ const PersonalWorkspace = (props) => {
       if (finishedData.data) {
         const finishedData1 =
           finishedData.data.getAllPersonalFinishedOfStudent.map((task) => {
-            return { id: `item-${task}`, content: `${task}` };
+            return {
+              id: `item-${task.tasks_id}`,
+              content: `${task.task_name}`,
+              created_date: task.created_date,
+              subject: task.subject_code,
+              deadline: task.deadline,
+            };
           });
         setItems4(finishedData1);
       }
@@ -242,14 +362,28 @@ const PersonalWorkspace = (props) => {
     if (role === 'teacher') {
       if (todoT.data) {
         const tododata1 = todoT.data.getAllTodoOfTeacher.map((task) => {
-          return { id: `item-${task}`, content: `${task}` };
+          return {
+            id: `item-${task.tasks_id}`,
+            content: `${task.task_name}`,
+            created_date: task.created_date,
+            subject: task.subject_code,
+            deadline: task.deadline,
+            expanded: false,
+          };
         });
         setItems(tododata1);
       }
       if (executingT.data) {
         const executingData1 = executingT.data.getAllExecutingOfTeacher.map(
           (task) => {
-            return { id: `item-${task}`, content: `${task}` };
+            return {
+              id: `item-${task.tasks_id}`,
+              content: `${task.task_name}`,
+              created_date: task.created_date,
+              subject: task.subject_code,
+              deadline: task.deadline,
+              expanded: false,
+            };
           }
         );
         setItems2(executingData1);
@@ -257,14 +391,28 @@ const PersonalWorkspace = (props) => {
       if (completedT.data) {
         const completedData1 = completedT.data.getAllCompletedOfTeacher.map(
           (task) => {
-            return { id: `item-${task}`, content: `${task}` };
+            return {
+              id: `item-${task.tasks_id}`,
+              content: `${task.task_name}`,
+              created_date: task.created_date,
+              subject: task.subject_code,
+              deadline: task.deadline,
+              expanded: false,
+            };
           }
         );
         setItems1(completedData1);
       }
       if (reviewT.data) {
         const reviewData1 = reviewT.data.getAllReviewOfTeacher.map((task) => {
-          return { id: `item-${task}`, content: `${task}` };
+          return {
+            id: `item-${task.tasks_id}`,
+            content: `${task.task_name}`,
+            created_date: task.created_date,
+            subject: task.subject_code,
+            deadline: task.deadline,
+            expanded: false,
+          };
         });
         setItems3(reviewData1);
       }
@@ -279,6 +427,7 @@ const PersonalWorkspace = (props) => {
     }
   }, [
     todoData,
+    getF,
     completedData,
     executingData,
     reviewData,
@@ -334,7 +483,7 @@ const PersonalWorkspace = (props) => {
   const onDragEnd = (result) => {
     const { destination, source } = result;
     if (!destination) {
-      enqueueSnackbar('Not Found ☠️', {
+      enqueueSnackbar('Cannot Drop There! ☠️', {
         style: { background: 'red' },
       });
       return;
@@ -357,7 +506,7 @@ const PersonalWorkspace = (props) => {
         if (destinationDroppableId === 'droppable-1') {
           taskToExecuting({
             variables: {
-              moveToExecution: {
+              movePersonalToExecution: {
                 task_name: removed.content,
                 student_roll: roll,
               },
@@ -365,9 +514,9 @@ const PersonalWorkspace = (props) => {
           })
             .then((response) => {
               if (response) {
-                console.log(response.data.moveTaskToExecuting);
-                if (response.data.moveTaskToExecuting) {
-                  enqueueSnackbar('Switched! ⚙️', {
+                console.log(response.data.movePersonalTaskToExecuting);
+                if (response.data.movePersonalTaskToExecuting) {
+                  enqueueSnackbar('Switched Task To Executing! ⚙️', {
                     style: { background: 'Purple' },
                   });
                 } else {
@@ -383,7 +532,7 @@ const PersonalWorkspace = (props) => {
         } else if (destinationDroppableId === 'droppable') {
           taskToTodo({
             variables: {
-              moveToTodo: {
+              movePersonalToTodo: {
                 student_roll: roll,
                 task_name: removed.content,
               },
@@ -391,9 +540,9 @@ const PersonalWorkspace = (props) => {
           })
             .then((response) => {
               if (response) {
-                console.log(response.data.moveTaskToTodo);
-                if (response.data.moveTaskToTodo) {
-                  enqueueSnackbar('Switched! ⚙️', {
+                console.log(response.data.movePersonalTaskToTodo);
+                if (response.data.movePersonalTaskToTodo) {
+                  enqueueSnackbar('Switched Task To ToDo! ⚙️', {
                     style: { background: 'Purple' },
                   });
                 } else {
@@ -409,7 +558,7 @@ const PersonalWorkspace = (props) => {
         } else if (destinationDroppableId === 'droppable-2') {
           taskToCompleted({
             variables: {
-              moveToCompleted: {
+              movePersonalToCompleted: {
                 student_roll: roll,
                 task_name: removed.content,
               },
@@ -417,9 +566,9 @@ const PersonalWorkspace = (props) => {
           })
             .then((response) => {
               if (response) {
-                console.log(response.data.moveTaskToCompleted);
-                if (response.data.moveTaskToCompleted) {
-                  enqueueSnackbar('Switched! ⚙️', {
+                console.log(response.data.movePersonalTaskToCompleted);
+                if (response.data.movePersonalTaskToCompleted) {
+                  enqueueSnackbar('Switched Task To Completed! ⚙️', {
                     style: { background: 'Purple' },
                   });
                 } else {
@@ -445,7 +594,7 @@ const PersonalWorkspace = (props) => {
               if (response) {
                 console.log(response.data.movePersonalTaskToReview);
                 if (response.data.movePersonalTaskToReview) {
-                  enqueueSnackbar('Switched! ⚙️', {
+                  enqueueSnackbar('Switched Task To Review! ⚙️', {
                     style: { background: 'Purple' },
                   });
                 } else {
@@ -471,7 +620,7 @@ const PersonalWorkspace = (props) => {
               if (response) {
                 console.log(response.data.movePersonalTaskToFinished);
                 if (response.data.movePersonalTaskToFinished) {
-                  enqueueSnackbar('Switched! ⚙️', {
+                  enqueueSnackbar('Switched Task To Finished! ⚙️', {
                     style: { background: 'Purple' },
                   });
                 } else {
@@ -627,6 +776,172 @@ const PersonalWorkspace = (props) => {
     setIsExpanded(false);
   };
 
+  const handleClick = (arrayName, itemId, itemName) => {
+    switch (arrayName) {
+      case 'array-1':
+        setItems((prevArr) => {
+          const updatedArray = prevArr.map((item) => {
+            if (item.id === itemId) {
+              setTask(item.content);
+              return {
+                ...item,
+                task,
+                expanded: !item.expanded,
+              };
+            }
+            return item;
+          });
+          return updatedArray;
+        });
+        break;
+      case 'array-2':
+        setItems2((prevArr) => {
+          const updatedArray = prevArr.map((item) => {
+            if (item.id === itemId) {
+              setTask(item.content);
+              return {
+                ...item,
+                expanded: !item.expanded,
+              };
+            }
+            return item;
+          });
+          return updatedArray;
+        });
+        break;
+      case 'array-3':
+        setItems1((prevArr) => {
+          const updatedArray = prevArr.map((item) => {
+            if (item.id === itemId) {
+              setTask(item.content);
+
+              return {
+                ...item,
+                expanded: !item.expanded,
+              };
+            }
+            return item;
+          });
+          return updatedArray;
+        });
+        break;
+      case 'array-4':
+        setItems3((prevArr) => {
+          const updatedArray = prevArr.map((item) => {
+            if (item.id === itemId) {
+              setTask(item.content);
+              return {
+                ...item,
+                expanded: !item.expanded,
+              };
+            }
+            return item;
+          });
+          return updatedArray;
+        });
+        break;
+      default:
+        break;
+    }
+  };
+
+  const getItemStyle = useMemo(
+    () => (isDragging, draggableStyle, expanded) => ({
+      userSelect: 'none',
+      padding: 16,
+      height: expanded && 'auto',
+      margin: '0 0 8px 0',
+      background: isDragging ? '#9575DE' : '#B0DAFF',
+      transform: isDragging && 'rotateX(90deg)',
+      transition: 'height 0.5s ease',
+      ...draggableStyle,
+    }),
+    []
+  );
+
+  const handleDeleteClick = (name1) => {
+    if (role === 'student') {
+      delPerStud({
+        variables: {
+          name: name1,
+          username: name,
+        },
+      })
+        .then((res) => {
+          if (res) {
+            enqueueSnackbar(`Deleted Task ${name1}!`, {
+              style: { background: 'green' },
+            });
+            setTimeout(() => {
+              window.location.reload();
+            }, 4000);
+          }
+        })
+        .catch((err) => {
+          enqueueSnackbar(`${err}`, {
+            style: { background: 'red' },
+          });
+        });
+    } else if (role === 'teacher') {
+      delPerT({
+        variables: {
+          username: name,
+          name: name1,
+        },
+      })
+        .then((res) => {
+          if (res) {
+            enqueueSnackbar(`Deleted Task ${name1}!`, {
+              style: { background: 'green' },
+            });
+            setTimeout(() => {
+              window.location.reload();
+            }, 4000);
+          }
+        })
+        .catch((err) => {
+          enqueueSnackbar(`${err}`, {
+            style: { background: 'red' },
+          });
+        });
+    }
+  };
+
+  const fileInputRef = useRef(null);
+
+  const handleButtonClick = (task_name) => {
+    fileInputRef.current.click();
+    fileInputRef.current.addEventListener('change', (event) =>
+      handleFileChange(event, task_name)
+    );
+  };
+  const handleFileChange = async (event, task_name) => {
+    const selectedFile = event.target.files[0];
+    const form = new FormData();
+    form.append('file', selectedFile);
+    form.append('taskName', task_name);
+    form.append('stud_Id', name);
+    try {
+      const response = await fetch('http://localhost:3001/students/upload', {
+        method: 'POST',
+        body: form,
+      });
+      if (response) {
+        enqueueSnackbar(`File ${selectedFile.name} Uploaded Successfully! 📁`, {
+          style: { background: 'green' },
+        });
+        setTimeout(() => {
+          window.location.reload();
+        }, 4000);
+      }
+    } catch (err) {
+      enqueueSnackbar(`${err}`, {
+        style: { background: 'red' },
+      });
+    }
+    console.log(selectedFile, task_name);
+  };
+
   return (
     <div className='body' onClick={handle}>
       <div className='title-button'>
@@ -669,12 +984,113 @@ const PersonalWorkspace = (props) => {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
+                            onClick={() =>
+                              handleClick('array-1', item.id, item.content)
+                            }
                             style={getItemStyle(
                               snapshot.isDragging,
-                              provided.draggableProps.style
+                              provided.draggableProps.style,
+                              item.expanded
                             )}
                           >
                             {item.content}
+                            {item.expanded ? (
+                              <>
+                                <button
+                                  style={{
+                                    position: 'absolute',
+                                    background: 'transparent',
+                                    border: 0,
+                                    right: 10,
+                                    bottom: 5,
+                                  }}
+                                  onClick={() =>
+                                    handleButtonClick(item.content)
+                                  }
+                                >
+                                  <svg
+                                    width='20'
+                                    height='20'
+                                    viewBox='0 0 20 20'
+                                    fill='none'
+                                    xmlns='http://www.w3.org/2000/svg'
+                                  >
+                                    <g clipPath='url(#clip0_133_2)'>
+                                      <path
+                                        d='M11.6668 1.66667H5.00016C4.0835 1.66667 3.34183 2.41667 3.34183 3.33333L3.3335 16.6667C3.3335 17.5833 4.07516 18.3333 4.99183 18.3333H15.0002C15.9168 18.3333 16.6668 17.5833 16.6668 16.6667V6.66667L11.6668 1.66667ZM15.0002 16.6667H5.00016V3.33333H10.8335V7.5H15.0002V16.6667ZM6.66683 12.5083L7.84183 13.6833L9.16683 12.3667V15.8333H10.8335V12.3667L12.1585 13.6917L13.3335 12.5083L10.0085 9.16667L6.66683 12.5083Z'
+                                        fill='black'
+                                      />
+                                    </g>
+                                    <defs>
+                                      <clipPath id='clip0_133_2'>
+                                        <rect
+                                          width='20'
+                                          height='20'
+                                          fill='white'
+                                        />
+                                      </clipPath>
+                                    </defs>
+                                  </svg>
+                                </button>
+                                <input
+                                  type='file'
+                                  ref={fileInputRef}
+                                  style={{ display: 'none' }}
+                                />
+                                <button
+                                  style={{
+                                    position: 'absolute',
+                                    background: 'transparent',
+                                    border: 0,
+                                    width: 0,
+                                    right: 50,
+                                    bottom: 5,
+                                  }}
+                                  onClick={() =>
+                                    handleDeleteClick(item.content)
+                                  }
+                                >
+                                  <svg
+                                    width='14'
+                                    height='16'
+                                    viewBox='0 0 24 31'
+                                    fill='none'
+                                    xmlns='http://www.w3.org/2000/svg'
+                                  >
+                                    <path
+                                      d='M1.77679 27.25C1.77679 29.0706 3.26339 30.5602 5.08036 30.5602H18.2946C20.1116 30.5602 21.5982 29.0706 21.5982 27.25V7.38889H1.77679V27.25ZM5.84018 15.4657L8.1692 13.1321L11.6875 16.6409L15.1893 13.1321L17.5183 15.4657L14.0165 18.9745L17.5183 22.4833L15.1893 24.817L11.6875 21.3082L8.18571 24.817L5.8567 22.4833L9.35848 18.9745L5.84018 15.4657ZM17.4688 2.42361L15.817 0.768518H7.55804L5.90625 2.42361H0.125V5.7338H23.25V2.42361H17.4688Z'
+                                      fill='black'
+                                    />
+                                  </svg>
+                                </button>
+                              </>
+                            ) : (
+                              ''
+                            )}
+                            {item.expanded && (
+                              <>
+                                <hr
+                                  style={{
+                                    border: 'none',
+                                    height: 5,
+                                    backgroundColor: 'violet',
+                                    borderWidth: 5,
+                                  }}
+                                />
+                                {getF.data && (
+                                  <>
+                                    Uploaded File:
+                                    {getF.data.getFile.map((file) => (
+                                      <p key={file.fileName}>{file.fileName}</p>
+                                    ))}
+                                  </>
+                                )}
+                                {item.deadline && (
+                                  <p>Deadline : {item.deadline}</p>
+                                )}
+                                <p>Created on : {item.created_date}</p>
+                              </>
+                            )}
                           </div>
                         )}
                       </Draggable>
@@ -714,12 +1130,111 @@ const PersonalWorkspace = (props) => {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
+                            onClick={() => handleClick('array-2', item.id)}
                             style={getItemStyle(
                               snapshot.isDragging,
-                              provided.draggableProps.style
+                              provided.draggableProps.style,
+                              item.expanded
                             )}
                           >
                             {item.content}
+                            {item.expanded ? (
+                              <>
+                                <button
+                                  style={{
+                                    position: 'absolute',
+                                    background: 'transparent',
+                                    border: 0,
+                                    right: 10,
+                                    bottom: 5,
+                                  }}
+                                  onClick={() =>
+                                    handleButtonClick(item.content)
+                                  }
+                                >
+                                  <svg
+                                    width='20'
+                                    height='20'
+                                    viewBox='0 0 20 20'
+                                    fill='none'
+                                    xmlns='http://www.w3.org/2000/svg'
+                                  >
+                                    <g clipPath='url(#clip0_133_2)'>
+                                      <path
+                                        d='M11.6668 1.66667H5.00016C4.0835 1.66667 3.34183 2.41667 3.34183 3.33333L3.3335 16.6667C3.3335 17.5833 4.07516 18.3333 4.99183 18.3333H15.0002C15.9168 18.3333 16.6668 17.5833 16.6668 16.6667V6.66667L11.6668 1.66667ZM15.0002 16.6667H5.00016V3.33333H10.8335V7.5H15.0002V16.6667ZM6.66683 12.5083L7.84183 13.6833L9.16683 12.3667V15.8333H10.8335V12.3667L12.1585 13.6917L13.3335 12.5083L10.0085 9.16667L6.66683 12.5083Z'
+                                        fill='black'
+                                      />
+                                    </g>
+                                    <defs>
+                                      <clipPath id='clip0_133_2'>
+                                        <rect
+                                          width='20'
+                                          height='20'
+                                          fill='white'
+                                        />
+                                      </clipPath>
+                                    </defs>
+                                  </svg>
+                                </button>
+                                <input
+                                  type='file'
+                                  ref={fileInputRef}
+                                  style={{ display: 'none' }}
+                                />
+                                <button
+                                  style={{
+                                    position: 'absolute',
+                                    background: 'transparent',
+                                    border: 0,
+                                    width: 0,
+                                    right: 50,
+                                    bottom: 5,
+                                  }}
+                                  onClick={() =>
+                                    handleDeleteClick(item.content)
+                                  }
+                                >
+                                  <svg
+                                    width='14'
+                                    height='16'
+                                    viewBox='0 0 24 31'
+                                    fill='none'
+                                    xmlns='http://www.w3.org/2000/svg'
+                                  >
+                                    <path
+                                      d='M1.77679 27.25C1.77679 29.0706 3.26339 30.5602 5.08036 30.5602H18.2946C20.1116 30.5602 21.5982 29.0706 21.5982 27.25V7.38889H1.77679V27.25ZM5.84018 15.4657L8.1692 13.1321L11.6875 16.6409L15.1893 13.1321L17.5183 15.4657L14.0165 18.9745L17.5183 22.4833L15.1893 24.817L11.6875 21.3082L8.18571 24.817L5.8567 22.4833L9.35848 18.9745L5.84018 15.4657ZM17.4688 2.42361L15.817 0.768518H7.55804L5.90625 2.42361H0.125V5.7338H23.25V2.42361H17.4688Z'
+                                      fill='black'
+                                    />
+                                  </svg>
+                                </button>
+                              </>
+                            ) : (
+                              ''
+                            )}
+                            {item.expanded && (
+                              <>
+                                <hr
+                                  style={{
+                                    border: 'none',
+                                    height: 5,
+                                    backgroundColor: 'violet',
+                                    borderWidth: 5,
+                                  }}
+                                />
+                                {getF.data && (
+                                  <>
+                                    Uploaded File:
+                                    {getF.data.getFile.map((file) => (
+                                      <p key={file.fileName}>{file.fileName}</p>
+                                    ))}
+                                  </>
+                                )}
+                                {item.deadline && (
+                                  <p>Deadline : {item.deadline}</p>
+                                )}
+                                <p>Created on : {item.created_date}</p>
+                              </>
+                            )}
                           </div>
                         )}
                       </Draggable>
@@ -761,10 +1276,110 @@ const PersonalWorkspace = (props) => {
                             {...provided.dragHandleProps}
                             style={getItemStyle(
                               snapshot.isDragging,
-                              provided.draggableProps.style
+                              provided.draggableProps.style,
+                              item.expanded
                             )}
+                            onClick={() => handleClick('array-3', item.id)}
                           >
                             {item.content}
+                            {item.expanded ? (
+                              <>
+                                <button
+                                  style={{
+                                    position: 'absolute',
+                                    background: 'transparent',
+                                    border: 0,
+                                    right: 10,
+                                    bottom: 5,
+                                  }}
+                                  onClick={() =>
+                                    handleButtonClick(item.content)
+                                  }
+                                >
+                                  <svg
+                                    width='20'
+                                    height='20'
+                                    viewBox='0 0 20 20'
+                                    fill='none'
+                                    xmlns='http://www.w3.org/2000/svg'
+                                  >
+                                    <g clipPath='url(#clip0_133_2)'>
+                                      <path
+                                        d='M11.6668 1.66667H5.00016C4.0835 1.66667 3.34183 2.41667 3.34183 3.33333L3.3335 16.6667C3.3335 17.5833 4.07516 18.3333 4.99183 18.3333H15.0002C15.9168 18.3333 16.6668 17.5833 16.6668 16.6667V6.66667L11.6668 1.66667ZM15.0002 16.6667H5.00016V3.33333H10.8335V7.5H15.0002V16.6667ZM6.66683 12.5083L7.84183 13.6833L9.16683 12.3667V15.8333H10.8335V12.3667L12.1585 13.6917L13.3335 12.5083L10.0085 9.16667L6.66683 12.5083Z'
+                                        fill='black'
+                                      />
+                                    </g>
+                                    <defs>
+                                      <clipPath id='clip0_133_2'>
+                                        <rect
+                                          width='20'
+                                          height='20'
+                                          fill='white'
+                                        />
+                                      </clipPath>
+                                    </defs>
+                                  </svg>
+                                </button>
+                                <input
+                                  type='file'
+                                  ref={fileInputRef}
+                                  style={{ display: 'none' }}
+                                />
+                                <button
+                                  style={{
+                                    position: 'absolute',
+                                    background: 'transparent',
+                                    border: 0,
+                                    width: 0,
+                                    right: 50,
+                                    bottom: 5,
+                                  }}
+                                  onClick={() =>
+                                    handleDeleteClick(item.content)
+                                  }
+                                >
+                                  <svg
+                                    width='14'
+                                    height='16'
+                                    viewBox='0 0 24 31'
+                                    fill='none'
+                                    xmlns='http://www.w3.org/2000/svg'
+                                  >
+                                    <path
+                                      d='M1.77679 27.25C1.77679 29.0706 3.26339 30.5602 5.08036 30.5602H18.2946C20.1116 30.5602 21.5982 29.0706 21.5982 27.25V7.38889H1.77679V27.25ZM5.84018 15.4657L8.1692 13.1321L11.6875 16.6409L15.1893 13.1321L17.5183 15.4657L14.0165 18.9745L17.5183 22.4833L15.1893 24.817L11.6875 21.3082L8.18571 24.817L5.8567 22.4833L9.35848 18.9745L5.84018 15.4657ZM17.4688 2.42361L15.817 0.768518H7.55804L5.90625 2.42361H0.125V5.7338H23.25V2.42361H17.4688Z'
+                                      fill='black'
+                                    />
+                                  </svg>
+                                </button>
+                              </>
+                            ) : (
+                              ''
+                            )}
+
+                            {item.expanded && (
+                              <>
+                                <hr
+                                  style={{
+                                    border: 'none',
+                                    height: 5,
+                                    backgroundColor: 'violet',
+                                    borderWidth: 5,
+                                  }}
+                                />
+                                {getF.data && (
+                                  <>
+                                    Uploaded File:
+                                    {getF.data.getFile.map((file) => (
+                                      <p key={file.fileName}>{file.fileName}</p>
+                                    ))}
+                                  </>
+                                )}
+                                {item.deadline && (
+                                  <p>Deadline : {item.deadline}</p>
+                                )}
+                                <p>Created on : {item.created_date}</p>
+                              </>
+                            )}
                           </div>
                         )}
                       </Draggable>
@@ -804,12 +1419,70 @@ const PersonalWorkspace = (props) => {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
+                            onClick={() => handleClick('array-4', item.id)}
                             style={getItemStyle(
                               snapshot.isDragging,
-                              provided.draggableProps.style
+                              provided.draggableProps.style,
+                              item.expanded
                             )}
                           >
                             {item.content}
+                            {item.expanded ? (
+                              <>
+                                <button
+                                  style={{
+                                    position: 'absolute',
+                                    background: 'transparent',
+                                    border: 0,
+                                    width: 0,
+                                    right: 20,
+                                    bottom: 5,
+                                  }}
+                                  onClick={() =>
+                                    handleDeleteClick(item.content)
+                                  }
+                                >
+                                  <svg
+                                    width='14'
+                                    height='16'
+                                    viewBox='0 0 24 31'
+                                    fill='none'
+                                    xmlns='http://www.w3.org/2000/svg'
+                                  >
+                                    <path
+                                      d='M1.77679 27.25C1.77679 29.0706 3.26339 30.5602 5.08036 30.5602H18.2946C20.1116 30.5602 21.5982 29.0706 21.5982 27.25V7.38889H1.77679V27.25ZM5.84018 15.4657L8.1692 13.1321L11.6875 16.6409L15.1893 13.1321L17.5183 15.4657L14.0165 18.9745L17.5183 22.4833L15.1893 24.817L11.6875 21.3082L8.18571 24.817L5.8567 22.4833L9.35848 18.9745L5.84018 15.4657ZM17.4688 2.42361L15.817 0.768518H7.55804L5.90625 2.42361H0.125V5.7338H23.25V2.42361H17.4688Z'
+                                      fill='black'
+                                    />
+                                  </svg>
+                                </button>
+                              </>
+                            ) : (
+                              ''
+                            )}
+                            {item.expanded && (
+                              <>
+                                <hr
+                                  style={{
+                                    border: 'none',
+                                    height: 5,
+                                    backgroundColor: 'violet',
+                                    borderWidth: 5,
+                                  }}
+                                />
+                                {getF.data && (
+                                  <>
+                                    Uploaded File:
+                                    {getF.data.getFile.map((file) => (
+                                      <p key={file.fileName}>{file.fileName}</p>
+                                    ))}
+                                  </>
+                                )}
+                                {item.deadline && (
+                                  <p>Deadline : {item.deadline}</p>
+                                )}
+                                <p>Created on : {item.created_date}</p>
+                              </>
+                            )}
                           </div>
                         )}
                       </Draggable>
